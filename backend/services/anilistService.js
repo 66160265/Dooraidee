@@ -10,14 +10,21 @@ const TRENDING_ANIME_QUERY = `
         Page(page: 1, perPage: 20){
             media(type: ANIME, sort: TRENDING_DESC){
             id
-            title{
-                romaji
-                english
+            title {
+              romaji
+              english
             }
-            coverImage{
-                large
+            description
+            coverImage {
+              large
+            }
+            startDate {
+              year
+              month
+              day
             }
             averageScore
+            genres
             }
         }
     }

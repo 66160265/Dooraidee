@@ -14,6 +14,12 @@ async function getTrendingMovies() {
     return data.results;
 }
 
+async function getTrendingTvShows() {
+    const { data } = await tmdbClient.get('/trending/tv/day');
+    return data.results;
+}
+
 module.exports = {
     getTrendingMovies,
+    getTrendingTvShows,
 };
