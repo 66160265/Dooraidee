@@ -2,7 +2,7 @@ const axios = require("axios");
 
 const anilistClient = axios.create({
   baseURL: "https://graphql.anilist.co",
-  headers: { "Content-Tpye": "application/json" },
+  headers: { "Content-Type": "application/json" },
 });
 
 const TRENDING_ANIME_QUERY = `
