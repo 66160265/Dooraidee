@@ -78,12 +78,12 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
   }
 
   if (filteredItems.length === 0) {
-    return <p className="text-gray-400 px-4">ไม่พบรายการที่ตรงกับเงื่อนไข</p>;
+    return <p className="text-gray-500 px-4">ไม่พบรายการที่ตรงกับเงื่อนไข</p>;
   }
 
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 max-w-[1400px] mx-auto">
         {filteredItems.map((item) => (
           <MediaCard key={item.uniqueId} {...item} />
         ))}
@@ -93,7 +93,7 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
           <button
             onClick={loadMore}
             disabled={loadingMore}
-            className="px-6 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-50"
+            className="px-6 py-2 rounded-lg bg-[#36b9e9] text-white hover:opacity-90 disabled:opacity-50"
           >
             {loadingMore ? "กำลังโหลด..." : "โหลดเพิ่ม"}
           </button>

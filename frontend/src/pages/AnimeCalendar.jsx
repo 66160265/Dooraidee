@@ -30,31 +30,33 @@ function AnimeCalendar() {
     }, []);
 
     if (loading) {
-        return <p className="text-gray-400 px-4 pt-4">กำลังโหลด...</p>;
+        return <p className="text-gray-500 px-4 pt-8">กำลังโหลด...</p>;
     }
 
     return (
-        <div className="px-4 pt-4 pb-8">
-            <h1 className="text-white text-2xl font-bold mb-4">ปฏิทินออกอากาศอนิเมะ</h1>
+        <div className="max-w-[1400px] mx-auto px-4 pt-8 pb-8">
+            <h1 className="text-3xl font-bold mb-6">ปฏิทินออกอากาศอนิเมะ</h1>
             {days.map((day) => (
-                <div key={day.dayOfWeek} className="mb-8">
-                    <h2 className="text-white text-xl font-semibold mb-3">{day.dayOfWeek}</h2>
+                <div key={day.dayOfWeek} className="mb-10">
+                    <h2 className="text-xl font-semibold mb-3 text-[#0090c7]">{day.dayOfWeek}</h2>
                     {day.items.length === 0 ? (
-                        <p className="text-gray-400">ไม่มีอนิเมะออกอากาศ</p>
+                        <p className="text-gray-500">ไม่มีอนิเมะออกอากาศ</p>
                     ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                             {day.items.map((item) => (
                                 <Link
                                     key={`${item.uniqueId}-${item.airingAt}`}
                                     to={`/anime/detail/${item.originalId}/${slugify(item.title)}`}
-                                    className="rounded-lg overflow-hidden shadow-md bg-gray-800 hover:scale-105 transition-transform"
+                                    className="rounded-lg overflow-hidden shadow-[0_0_10px_rgba(0,0,0,0.4)] hover:scale-105 transition-transform"
                                 >
-                                    <img src={item.posterUrl} alt={item.title} className="w-full h-56 object-cover" />
-                                    <div className="p-2">
-                                        <h3 className="text-white text-sm font-semibold truncate">{item.title}</h3>
-                                        <div className="flex justify-between items-center mt-1 text-xs text-gray-400">
-                                            <span>ตอนที่ {item.episode}</span>
-                                            <span>{formatAiringTime(item.airingAt)} น.</span>
+                                    <div className="relative">
+                                        <img src={item.posterUrl} alt={item.title} className="w-full h-64 object-cover" />
+                                        <div className="absolute top-2 right-2 bg-white text-black text-sm px-3 py-1 rounded-full shadow-[0_0_5px_rgba(0,0,0,0.2)]">
+                                            {formatAiringTime(item.airingAt)} น.
+                                        </div>
+                                        <div className="absolute bottom-0 left-0 w-full bg-black/80 text-white text-sm p-2">
+                                            <p className="truncate">{item.title}</p>
+                                            <p className="text-gray-300 text-xs">ตอนที่ {item.episode}</p>
                                         </div>
                                     </div>
                                 </Link>
