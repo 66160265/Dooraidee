@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { genreLabel } from "../utils/genreLabels";
 
@@ -10,6 +10,7 @@ const ENDPOINT_MAP = {
 
 function DetailPage({ mediaType }) {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [item, setItem] = useState(null);
     const [loading, setLoading] = useState(true);
     const [watchProviders, setWatchProviders] = useState({ platforms: [], link: null });
@@ -45,28 +46,62 @@ function DetailPage({ mediaType }) {
         fetchProviders();
     }, [mediaType, id]);
 
-    if (loading) return <p>กำลังโหลด...</p>;
-    if (!item) return <p>ไม่พบข้อมูล</p>;
+    if (loading) return <p className="text-center pt-8">กำลังโหลด...</p>;
+    if (!item) return <p className="text-center pt-8">ไม่พบข้อมูล</p>;
 
     return (
-        <div>
-            <h1>{item.title}</h1>
-            <img src={item.posterUrl} alt={item.title} />
-            <p>{item.description}</p>
-            <p>⭐ {item.score.toFixed(1)}</p>
-            {item.genres?.length > 0 && (
-                <p>แนว: {item.genres.map(genreLabel).join(", ")}</p>
-            )}
-            {item.studio && <p>ผลิตโดยสตูดิโอ {item.studio}</p>}
+        <div className="max-w-[1200px] mx-auto pt-8 pb-16 px-4">
+            <button
+                onClick={() => navigate(-1)}
+                className="mb-4 bg-[#b1e5ff] text-black px-4 py-1.5 rounded-md hover:scale-[1.02] transition-transform"
+            >
+                &larr; ย้อนกลับ
+            </button>
+
+            <div className="flex flex-col md:flex-row gap-5 bg-[#b1e5ff] rounded-xl p-5">
+                <img
+                    src={item.posterUrl}
+                    alt={item.title}
+                    className="w-full md:w-[250px] h-[350px] object-cover rounded-lg shrink-0"
+                />
+                <div className="flex-1">
+                    <h1 className="text-2xl font-bold flex-wrap">{item.title}</h1>
+                    <p className="mt-2 text-lg">{item.description}</p>
+                    <p className="mt-2">⭐ {item.score.toFixed(1)}</p>
+
+                    {item.genres?.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                            {item.genres.map((g) => (
+                                <span key={g} className="bg-[#00aaff] text-black text-sm px-3 py-1 rounded-md">
+                                    {genreLabel(g)}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
+                    {item.studio && (
+                        <p className="mt-3 text-sm">ผลิตโดยสตูดิโอ {item.studio}</p>
+                    )}
+                </div>
+            </div>
+
             {watchProviders.platforms.length > 0 && (
-                <div>
-                    <h2>ช่องทางการรับชม</h2>
-                    {watchProviders.platforms.map((p) => (
-                        <a key={p.name} href={watchProviders.link} target="_blank" rel="noopener noreferrer">
-                            <img src={p.logoUrl} alt={p.name} />
-                            <span>{p.name}</span>
-                        </a>
-                    ))}
+                <div className="mt-6 bg-[#b1e5ff] rounded-xl p-5">
+                    <h2 className="text-xl font-semibold mb-3">ช่องทางการรับชม</h2>
+                    <div className="flex flex-wrap gap-4">
+                        {watchProviders.platforms.map((p) => (
+                            <a
+                                key={p.name}
+                                href={watchProviders.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 hover:scale-105 transition-transform"
+                            >
+                                <img src={p.logoUrl} alt={p.name} className="w-6 h-6 rounded" />
+                                <span className="text-black text-sm">{p.name}</span>
+                            </a>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>

@@ -22,6 +22,8 @@ const SEASONS = [
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 15 }, (_, i) => CURRENT_YEAR + 1 - i);
 
+const SELECT_CLASS = "bg-white text-black border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#36b9e9]";
+
 function FilterBar({ mediaType, filters, onChange }) {
     const genreOptions = mediaType === "anime" ? ANIME_GENRES : MOVIE_TV_GENRES;
 
@@ -30,11 +32,11 @@ function FilterBar({ mediaType, filters, onChange }) {
     }
 
     return (
-        <div className="flex flex-wrap gap-3 px-4 pb-4">
+        <div className="flex flex-wrap gap-3 max-w-[1200px] mx-auto px-4 pt-3 pb-4">
             <select
                 value={filters.genre}
                 onChange={(e) => handleChange("genre", e.target.value)}
-                className="bg-gray-800 text-white rounded-lg px-3 py-2"
+                className={SELECT_CLASS}
             >
                 <option value="">ทุกแนว</option>
                 {genreOptions.map((g) => (
@@ -46,7 +48,7 @@ function FilterBar({ mediaType, filters, onChange }) {
                 <select
                     value={filters.season}
                     onChange={(e) => handleChange("season", e.target.value)}
-                    className="bg-gray-800 text-white rounded-lg px-3 py-2"
+                    className={SELECT_CLASS}
                 >
                     <option value="">ทุกฤดูกาล</option>
                     {SEASONS.map((s) => (
@@ -58,7 +60,7 @@ function FilterBar({ mediaType, filters, onChange }) {
             <select
                 value={filters.year}
                 onChange={(e) => handleChange("year", e.target.value)}
-                className="bg-gray-800 text-white rounded-lg px-3 py-2"
+                className={SELECT_CLASS}
             >
                 <option value="">ทุกปี</option>
                 {YEARS.map((y) => (
