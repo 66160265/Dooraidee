@@ -84,15 +84,15 @@ function DetailPage({ mediaType }) {
                     )}
 
                     {item.studio && (
-                        <div className="flex items-center gap-2 mt-3">
+                        <div className="mt-4">
+                            <p className="text-sm mb-2">ผลิตโดยสตูดิโอ {item.studio}</p>
                             {item.studioLogoUrl && (
                                 <img
                                     src={item.studioLogoUrl}
                                     alt={item.studio}
-                                    className="h-6 object-contain bg-white rounded px-1"
+                                    className="h-28 w-auto object-contain bg-white rounded-lg p-3 shadow-[0_0_5px_rgba(0,0,0,0.2)]"
                                 />
                             )}
-                            <p className="text-sm">ผลิตโดยสตูดิโอ {item.studio}</p>
                         </div>
                     )}
                 </div>

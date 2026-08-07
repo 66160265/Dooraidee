@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const anilistService = require('../services/anilistService');
 const tmdbService = require('../services/tmdbService');
+const translateService = require('../services/translateService');
 const { normalizeAnime, isAdultAnime } = require('../services/normalizer');
 
 const PER_PAGE = 20;
@@ -34,13 +35,15 @@ router.get('/:id', async (req, res, next) => {
         }
 
         const normalized = normalizeAnime(anime);
-        if (normalized.studio) {
-            try {
-                normalized.studioLogoUrl = await tmdbService.findCompanyLogoUrl(normalized.studio);
-            } catch (err) {
-                normalized.studioLogoUrl = null;
-            }
-        }
+
+        const [studioLogoUrl, translatedDescription] = await Promise.all([
+            normalized.studio
+                ? tmdbService.findCompanyLogoUrl(normalized.studio).catch(() => null)
+                : Promise.resolve(null),
+            translateService.translateToThai(normalized.description),
+        ]);
+        normalized.studioLogoUrl = studioLogoUrl;
+        normalized.description = translatedDescription;
 
         res.json(normalized);
     } catch (err) {

@@ -83,16 +83,30 @@ async function findCompanyLogoUrl(name) {
 }
 
 async function getMovieById(id) {
-    const { data } = await tmdbClient.get(`/movie/${id}`, {
-        params: { append_to_response: 'keywords' },
-    });
+    const [{ data }, thOverview] = await Promise.all([
+        tmdbClient.get(`/movie/${id}`, {
+            params: { append_to_response: 'keywords' },
+        }),
+        tmdbClient
+            .get(`/movie/${id}`, { params: { language: 'th-TH' } })
+            .then((res) => res.data.overview)
+            .catch(() => null),
+    ]);
+    if (thOverview) data.overview = thOverview;
     return data;
 }
 
 async function getTvById(id) {
-    const { data } = await tmdbClient.get(`/tv/${id}`, {
-        params: { append_to_response: 'keywords' },
-    });
+    const [{ data }, thOverview] = await Promise.all([
+        tmdbClient.get(`/tv/${id}`, {
+            params: { append_to_response: 'keywords' },
+        }),
+        tmdbClient
+            .get(`/tv/${id}`, { params: { language: 'th-TH' } })
+            .then((res) => res.data.overview)
+            .catch(() => null),
+    ]);
+    if (thOverview) data.overview = thOverview;
     return data;
 }
 
