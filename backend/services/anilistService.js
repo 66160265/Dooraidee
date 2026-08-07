@@ -5,27 +5,73 @@ const anilistClient = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+const MEDIA_FIELDS = `
+    id
+    title {
+      romaji
+      english
+    }
+    description
+    coverImage {
+      large
+    }
+    startDate {
+      year
+      month
+      day
+    }
+    averageScore
+    genres
+    season
+    seasonYear
+    studios(isMain: true) {
+      nodes {
+        name
+      }
+    }
+`;
+
 const TRENDING_ANIME_QUERY = `
     query{
         Page(page: 1, perPage: 20){
             media(type: ANIME, sort: TRENDING_DESC){
-            id
-            title {
-              romaji
-              english
+            ${MEDIA_FIELDS}
             }
-            description
-            coverImage {
-              large
+        }
+    }
+`;
+
+const AIRING_SCHEDULE_QUERY = `
+    query ($start: Int, $end: Int) {
+        Page(page: 1, perPage: 50) {
+            airingSchedules(airingAt_greater: $start, airingAt_lesser: $end, sort: TIME) {
+                airingAt
+                episode
+                media {
+                    ${MEDIA_FIELDS}
+                }
             }
-            startDate {
-              year
-              month
-              day
+        }
+    }
+`;
+
+const ANIME_LIST_QUERY = `
+    query ($page: Int, $perPage: Int) {
+        Page(page: $page, perPage: $perPage) {
+            pageInfo {
+                hasNextPage
             }
-            averageScore
-            genres
+            media(type: ANIME, sort: POPULARITY_DESC) {
+                ${MEDIA_FIELDS}
             }
+        }
+    }
+`;
+
+const ANIME_BY_ID_QUERY = `
+    query ($id: Int) {
+        Media(id: $id, type: ANIME) {
+            ${MEDIA_FIELDS}
         }
     }
 `;
@@ -37,6 +83,33 @@ async function getTrendingAnime() {
   return data.data.Page.media;
 }
 
+async function getAiringSchedule(start, end) {
+  const { data } = await anilistClient.post("", {
+    query: AIRING_SCHEDULE_QUERY,
+    variables: { start, end },
+  });
+  return data.data.Page.airingSchedules;
+}
+
+async function getAnimeList(page, perPage) {
+  const { data } = await anilistClient.post("", {
+    query: ANIME_LIST_QUERY,
+    variables: { page, perPage },
+  });
+  return data.data.Page;
+}
+
+async function getAnimeById(id) {
+  const { data } = await anilistClient.post("", {
+    query: ANIME_BY_ID_QUERY,
+    variables: { id },
+  });
+  return data.data.Media;
+}
+
 module.exports = {
   getTrendingAnime,
+  getAiringSchedule,
+  getAnimeList,
+  getAnimeById,
 };
