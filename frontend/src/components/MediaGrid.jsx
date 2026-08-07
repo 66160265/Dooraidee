@@ -69,7 +69,7 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 max-w-[1400px] mx-auto">
         {Array.from({ length: 8 }).map((_, i) => (
           <MediaCardSkeleton key={i} />
         ))}
@@ -83,7 +83,7 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
 
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 max-w-[1400px] mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 max-w-[1400px] mx-auto">
         {filteredItems.map((item) => (
           <MediaCard key={item.uniqueId} {...item} />
         ))}
