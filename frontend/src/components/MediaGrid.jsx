@@ -8,8 +8,9 @@ const ENDPOINT_MAP = {
   anime: "anime",
 };
 
-function buildQuery(page, filters) {
+function buildQuery(page, filters, search) {
   const params = new URLSearchParams({ page });
+  if (search) params.set("search", search);
   if (filters.genre) params.set("genre", filters.genre);
   if (filters.year) params.set("year", filters.year);
   if (filters.season) params.set("season", filters.season);
@@ -22,8 +23,14 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
-  const filterKey = `${filters.genre || ""}|${filters.year || ""}|${filters.season || ""}`;
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedSearch(searchQuery), 400);
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
+
+  const filterKey = `${filters.genre || ""}|${filters.year || ""}|${filters.season || ""}|${debouncedSearch}`;
 
   useEffect(() => {
     setItems([]);
@@ -32,7 +39,7 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
 
     async function fetchData() {
       try {
-        const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}?${buildQuery(1, filters)}`);
+        const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}?${buildQuery(1, filters, debouncedSearch)}`);
         const data = await res.json();
         setItems(data.results);
         setHasNextPage(data.hasNextPage);
@@ -49,7 +56,7 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
     const nextPage = page + 1;
     setLoadingMore(true);
     try {
-      const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}?${buildQuery(nextPage, filters)}`);
+      const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}?${buildQuery(nextPage, filters, debouncedSearch)}`);
       const data = await res.json();
       setItems((prev) => [...prev, ...data.results]);
       setHasNextPage(data.hasNextPage);
@@ -61,12 +68,6 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
     }
   }
 
-  const filteredItems = items.filter((item) => {
-    const cleanTitle = item.title.replace(/\s+/g, "").toLowerCase();
-    const cleanQuery = searchQuery.replace(/\s+/g, "").toLowerCase();
-    return cleanTitle.includes(cleanQuery);
-  });
-
   if (loading) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 max-w-[1400px] mx-auto">
@@ -77,14 +78,14 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
     );
   }
 
-  if (filteredItems.length === 0) {
+  if (items.length === 0) {
     return <p className="text-gray-500 px-4">ไม่พบรายการที่ตรงกับเงื่อนไข</p>;
   }
 
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 max-w-[1400px] mx-auto">
-        {filteredItems.map((item) => (
+        {items.map((item) => (
           <MediaCard key={item.uniqueId} {...item} />
         ))}
       </div>
