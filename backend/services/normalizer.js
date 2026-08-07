@@ -91,4 +91,5 @@ module.exports = {
     normalizeTv,
     normalizeAnime,
     normalizeWatchProviders,
+    TMDB_GENRE_MAP,
 };

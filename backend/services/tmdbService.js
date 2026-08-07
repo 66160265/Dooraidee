@@ -24,13 +24,25 @@ async function getWatchProviders(mediaType, id) {
     return data.results;
 }
 
-async function getDiscoverMovies(page) {
-    const { data } = await tmdbClient.get('/discover/movie', { params: { page } });
+async function getDiscoverMovies(page, filters = {}) {
+    const { data } = await tmdbClient.get('/discover/movie', {
+        params: {
+            page,
+            with_genres: filters.genreId,
+            primary_release_year: filters.year,
+        },
+    });
     return data;
 }
 
-async function getDiscoverTvShows(page) {
-    const { data } = await tmdbClient.get('/discover/tv', { params: { page } });
+async function getDiscoverTvShows(page, filters = {}) {
+    const { data } = await tmdbClient.get('/discover/tv', {
+        params: {
+            page,
+            with_genres: filters.genreId,
+            first_air_date_year: filters.year,
+        },
+    });
     return data;
 }
 
