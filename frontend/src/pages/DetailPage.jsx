@@ -1,6 +1,12 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 
+const ENDPOINT_MAP = {
+    movie: "movies",
+    tv: "tv-shows",
+    anime: "anime",
+};
+
 function DetailPage({ mediaType }) {
     const { id } = useParams();
     const [item, setItem] = useState(null);
@@ -9,13 +15,11 @@ function DetailPage({ mediaType }) {
 
     useEffect(() => {
         async function fetchData() {
+            setLoading(true);
             try {
-                const res = await fetch("http://localhost:4000/api/trending");
+                const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}/${id}`);
                 const data = await res.json();
-                const found = data.results.find(
-                    (i) => i.mediaType === mediaType && i.originalId === Number(id)
-                );
-                setItem(found);
+                setItem(data);
             } catch (err) {
                 console.error("Failed to fetch detail:", err);
             } finally {
