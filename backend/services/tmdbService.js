@@ -54,6 +54,20 @@ async function getDiscoverTvShows(page, filters = {}) {
     return data;
 }
 
+async function searchMovies(page, query) {
+    const { data } = await tmdbClient.get('/search/movie', {
+        params: { page, query, include_adult: false },
+    });
+    return data;
+}
+
+async function searchTvShows(page, query) {
+    const { data } = await tmdbClient.get('/search/tv', {
+        params: { page, query, include_adult: false },
+    });
+    return data;
+}
+
 async function getMovieById(id) {
     const { data } = await tmdbClient.get(`/movie/${id}`, {
         params: { append_to_response: 'keywords' },
@@ -74,6 +88,8 @@ module.exports = {
     getWatchProviders,
     getDiscoverMovies,
     getDiscoverTvShows,
+    searchMovies,
+    searchTvShows,
     getMovieById,
     getTvById,
 };

@@ -57,12 +57,12 @@ const AIRING_SCHEDULE_QUERY = `
 `;
 
 const ANIME_LIST_QUERY = `
-    query ($page: Int, $perPage: Int, $genre: String, $season: MediaSeason, $seasonYear: Int) {
+    query ($page: Int, $perPage: Int, $genre: String, $season: MediaSeason, $seasonYear: Int, $search: String) {
         Page(page: $page, perPage: $perPage) {
             pageInfo {
                 hasNextPage
             }
-            media(type: ANIME, sort: POPULARITY_DESC, genre: $genre, season: $season, seasonYear: $seasonYear, isAdult: false) {
+            media(type: ANIME, sort: POPULARITY_DESC, genre: $genre, season: $season, seasonYear: $seasonYear, isAdult: false, search: $search) {
                 ${MEDIA_FIELDS}
             }
         }
@@ -93,10 +93,10 @@ async function getAiringSchedule(start, end) {
 }
 
 async function getAnimeList(page, perPage, filters = {}) {
-  const { genre, season, seasonYear } = filters;
+  const { genre, season, seasonYear, search } = filters;
   const { data } = await anilistClient.post("", {
     query: ANIME_LIST_QUERY,
-    variables: { page, perPage, genre, season, seasonYear },
+    variables: { page, perPage, genre, season, seasonYear, search },
   });
   return data.data.Page;
 }

@@ -10,11 +10,13 @@ const GENRE_NAME_TO_ID = Object.fromEntries(
 router.get('/', async (req, res, next) => {
     try {
         const page = Number(req.query.page) || 1;
-        const { genre, year } = req.query;
-        const data = await tmdbService.getDiscoverMovies(page, {
-            genreId: genre ? GENRE_NAME_TO_ID[genre] : undefined,
-            year: year || undefined,
-        });
+        const { genre, year, search } = req.query;
+        const data = search
+            ? await tmdbService.searchMovies(page, search)
+            : await tmdbService.getDiscoverMovies(page, {
+                genreId: genre ? GENRE_NAME_TO_ID[genre] : undefined,
+                year: year || undefined,
+            });
         res.json({
             page: data.page,
             hasNextPage: data.page < data.total_pages,
