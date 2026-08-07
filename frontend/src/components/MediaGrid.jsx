@@ -8,12 +8,22 @@ const ENDPOINT_MAP = {
   anime: "anime",
 };
 
-function MediaGrid({ mediaType, searchQuery }) {
+function buildQuery(page, filters) {
+  const params = new URLSearchParams({ page });
+  if (filters.genre) params.set("genre", filters.genre);
+  if (filters.year) params.set("year", filters.year);
+  if (filters.season) params.set("season", filters.season);
+  return params.toString();
+}
+
+function MediaGrid({ mediaType, searchQuery, filters = {} }) {
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  const filterKey = `${filters.genre || ""}|${filters.year || ""}|${filters.season || ""}`;
 
   useEffect(() => {
     setItems([]);
@@ -22,7 +32,7 @@ function MediaGrid({ mediaType, searchQuery }) {
 
     async function fetchData() {
       try {
-        const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}?page=1`);
+        const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}?${buildQuery(1, filters)}`);
         const data = await res.json();
         setItems(data.results);
         setHasNextPage(data.hasNextPage);
@@ -33,13 +43,13 @@ function MediaGrid({ mediaType, searchQuery }) {
       }
     }
     fetchData();
-  }, [mediaType]);
+  }, [mediaType, filterKey]);
 
   async function loadMore() {
     const nextPage = page + 1;
     setLoadingMore(true);
     try {
-      const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}?page=${nextPage}`);
+      const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}?${buildQuery(nextPage, filters)}`);
       const data = await res.json();
       setItems((prev) => [...prev, ...data.results]);
       setHasNextPage(data.hasNextPage);
@@ -65,6 +75,10 @@ function MediaGrid({ mediaType, searchQuery }) {
         ))}
       </div>
     );
+  }
+
+  if (filteredItems.length === 0) {
+    return <p className="text-gray-400 px-4">ไม่พบรายการที่ตรงกับเงื่อนไข</p>;
   }
 
   return (

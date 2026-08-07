@@ -23,6 +23,9 @@ function Navbar() {
                 <li>
                   <Link to="/anime">อนิเมะ</Link>
                 </li>
+                <li>
+                  <Link to="/anime-calendar">ปฏิทินออกอากาศ</Link>
+                </li>
               </ul>
             </div>
           </div>

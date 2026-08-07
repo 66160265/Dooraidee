@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { genreLabel } from "../utils/genreLabels";
 
 const ENDPOINT_MAP = {
     movie: "movies",
@@ -44,7 +45,7 @@ function DetailPage({ mediaType }) {
         fetchProviders();
     }, [mediaType, id]);
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) return <p>กำลังโหลด...</p>;
     if (!item) return <p>ไม่พบข้อมูล</p>;
 
     return (
@@ -53,6 +54,10 @@ function DetailPage({ mediaType }) {
             <img src={item.posterUrl} alt={item.title} />
             <p>{item.description}</p>
             <p>⭐ {item.score.toFixed(1)}</p>
+            {item.genres?.length > 0 && (
+                <p>แนว: {item.genres.map(genreLabel).join(", ")}</p>
+            )}
+            {item.studio && <p>ผลิตโดยสตูดิโอ {item.studio}</p>}
             {watchProviders.platforms.length > 0 && (
                 <div>
                     <h2>ช่องทางการรับชม</h2>

@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import Movies from "./pages/Movies";
 import TvShows from "./pages/TvShows";
 import Anime from "./pages/Anime";
+import AnimeCalendar from "./pages/AnimeCalendar";
 import Navbar from "./components/Navbar";
 import DetailPage from "./pages/DetailPage";
 
@@ -16,6 +17,7 @@ function App() {
         <Route path="/movies" element={<Movies />} />
         <Route path="/tv-shows" element={<TvShows />} />
         <Route path="/anime" element={<Anime />} />
+        <Route path="/anime-calendar" element={<AnimeCalendar />} />
         <Route path="/movies/detail/:id/:slug" element={<DetailPage mediaType="movie" />} />
         <Route path="/tv-shows/detail/:id/:slug" element={<DetailPage mediaType="tv" />} />
         <Route path="/anime/detail/:id/:slug" element={<DetailPage mediaType="anime" />} />
