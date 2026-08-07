@@ -19,7 +19,13 @@ async function getTrendingTvShows() {
     return data.results;
 }
 
+async function getWatchProviders(mediaType, id) {
+    const { data } = await tmdbClient.get(`/${mediaType}/${id}/watch/providers`);
+    return data.results;
+}
+
 module.exports = {
     getTrendingMovies,
     getTrendingTvShows,
+    getWatchProviders,
 };

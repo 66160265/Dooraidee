@@ -37,8 +37,37 @@ function normalizeAnime(anime) {
     };
 }
 
+function normalizeWatchProviders(results) {
+    const regionData = results.TH || results.US;
+
+    if (!regionData) {
+        return { platforms: [], link: null};
+    }
+
+    const allProviders = [
+        ...(regionData.flatrate || []),
+        ...(regionData.rent || []),
+        ...(regionData.buy || []),
+    ];
+
+    const seen = new Set();
+    const platforms = [];
+
+    for (const provider of allProviders) {
+        if (!seen.has(provider.provider_name)) {
+            seen.add(provider.provider_name);
+            platforms.push({
+                name: provider.provider_name,
+                logoUrl: `https://image.tmdb.org/t/p/w92${provider.logo_path}`
+            })
+        }
+    }
+    return { platforms, link: regionData.link };
+}
+
 module.exports = {
     normalizeMovie,
     normalizeTv,
     normalizeAnime,
+    normalizeWatchProviders,
 };
