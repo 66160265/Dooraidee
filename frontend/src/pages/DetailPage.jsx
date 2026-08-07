@@ -20,6 +20,10 @@ function DetailPage({ mediaType }) {
             setLoading(true);
             try {
                 const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}/${id}`);
+                if (!res.ok) {
+                    setItem(null);
+                    return;
+                }
                 const data = await res.json();
                 setItem(data);
             } catch (err) {

@@ -7,6 +7,7 @@ const anilistClient = axios.create({
 
 const MEDIA_FIELDS = `
     id
+    isAdult
     title {
       romaji
       english
@@ -34,7 +35,7 @@ const MEDIA_FIELDS = `
 const TRENDING_ANIME_QUERY = `
     query{
         Page(page: 1, perPage: 20){
-            media(type: ANIME, sort: TRENDING_DESC){
+            media(type: ANIME, sort: TRENDING_DESC, isAdult: false){
             ${MEDIA_FIELDS}
             }
         }
@@ -61,7 +62,7 @@ const ANIME_LIST_QUERY = `
             pageInfo {
                 hasNextPage
             }
-            media(type: ANIME, sort: POPULARITY_DESC, genre: $genre, season: $season, seasonYear: $seasonYear) {
+            media(type: ANIME, sort: POPULARITY_DESC, genre: $genre, season: $season, seasonYear: $seasonYear, isAdult: false) {
                 ${MEDIA_FIELDS}
             }
         }

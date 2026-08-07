@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const anilistService = require('../services/anilistService');
-const { normalizeAnime } = require('../services/normalizer');
+const { normalizeAnime, isAdultAnime } = require('../services/normalizer');
 
 const THAI_DAYS = ['วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์'];
 const BANGKOK_OFFSET_MS = 7 * 60 * 60 * 1000;
@@ -22,7 +22,7 @@ function normalizeSchedule(node) {
 
 async function fetchSchedule(startSec, endSec) {
     const rawSchedules = await anilistService.getAiringSchedule(startSec, endSec);
-    return rawSchedules.map(normalizeSchedule);
+    return rawSchedules.filter((node) => !isAdultAnime(node.media)).map(normalizeSchedule);
 }
 
 router.get('/today', async (req, res, next) => {

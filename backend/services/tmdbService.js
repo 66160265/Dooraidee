@@ -30,6 +30,7 @@ async function getDiscoverMovies(page, filters = {}) {
             page,
             with_genres: filters.genreId,
             primary_release_year: filters.year,
+            include_adult: false,
         },
     });
     return data;
@@ -41,6 +42,7 @@ async function getDiscoverTvShows(page, filters = {}) {
             page,
             with_genres: filters.genreId,
             first_air_date_year: filters.year,
+            include_adult: false,
         },
     });
     return data;
