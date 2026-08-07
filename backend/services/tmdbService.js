@@ -9,6 +9,10 @@ const tmdbClient = axios.create({
     },
 });
 
+// TMDB keyword IDs for adult/hentai content — TMDB's own `adult` flag often
+// doesn't catch these, so exclude them explicitly via without_keywords.
+const EXCLUDED_KEYWORDS = '198385,256466'; // hentai, erotic
+
 async function getTrendingMovies() {
     const { data } = await tmdbClient.get('/trending/movie/day');
     return data.results;
@@ -31,6 +35,7 @@ async function getDiscoverMovies(page, filters = {}) {
             with_genres: filters.genreId,
             primary_release_year: filters.year,
             include_adult: false,
+            without_keywords: EXCLUDED_KEYWORDS,
         },
     });
     return data;
@@ -43,18 +48,23 @@ async function getDiscoverTvShows(page, filters = {}) {
             with_genres: filters.genreId,
             first_air_date_year: filters.year,
             include_adult: false,
+            without_keywords: EXCLUDED_KEYWORDS,
         },
     });
     return data;
 }
 
 async function getMovieById(id) {
-    const { data } = await tmdbClient.get(`/movie/${id}`);
+    const { data } = await tmdbClient.get(`/movie/${id}`, {
+        params: { append_to_response: 'keywords' },
+    });
     return data;
 }
 
 async function getTvById(id) {
-    const { data } = await tmdbClient.get(`/tv/${id}`);
+    const { data } = await tmdbClient.get(`/tv/${id}`, {
+        params: { append_to_response: 'keywords' },
+    });
     return data;
 }
 

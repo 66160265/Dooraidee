@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const tmdbService = require('../services/tmdbService');
-const { normalizeTv, TMDB_GENRE_MAP } = require('../services/normalizer');
+const { normalizeTv, isAdultTmdb, TMDB_GENRE_MAP } = require('../services/normalizer');
 
 const GENRE_NAME_TO_ID = Object.fromEntries(
     Object.entries(TMDB_GENRE_MAP).map(([id, name]) => [name, Number(id)])
@@ -28,6 +28,9 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
     try {
         const tvShow = await tmdbService.getTvById(req.params.id);
+        if (isAdultTmdb(tvShow)) {
+            return res.status(404).json({ error: 'Not found' });
+        }
         res.json(normalizeTv(tvShow));
     } catch (err) {
         next(err);
