@@ -68,6 +68,20 @@ async function searchTvShows(page, query) {
     return data;
 }
 
+async function findCompanyLogoUrl(name) {
+    const { data } = await tmdbClient.get('/search/company', {
+        params: { query: name },
+    });
+
+    const exactMatch = data.results.find(
+        (c) => c.name.toLowerCase() === name.toLowerCase() && c.logo_path
+    );
+    const anyMatch = data.results.find((c) => c.logo_path);
+    const match = exactMatch || anyMatch;
+
+    return match ? `https://image.tmdb.org/t/p/w200${match.logo_path}` : null;
+}
+
 async function getMovieById(id) {
     const { data } = await tmdbClient.get(`/movie/${id}`, {
         params: { append_to_response: 'keywords' },
@@ -92,4 +106,5 @@ module.exports = {
     searchTvShows,
     getMovieById,
     getTvById,
+    findCompanyLogoUrl,
 };

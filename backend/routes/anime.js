@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const anilistService = require('../services/anilistService');
+const tmdbService = require('../services/tmdbService');
 const { normalizeAnime, isAdultAnime } = require('../services/normalizer');
 
 const PER_PAGE = 20;
@@ -31,7 +32,17 @@ router.get('/:id', async (req, res, next) => {
         if (isAdultAnime(anime)) {
             return res.status(404).json({ error: 'Not found' });
         }
-        res.json(normalizeAnime(anime));
+
+        const normalized = normalizeAnime(anime);
+        if (normalized.studio) {
+            try {
+                normalized.studioLogoUrl = await tmdbService.findCompanyLogoUrl(normalized.studio);
+            } catch (err) {
+                normalized.studioLogoUrl = null;
+            }
+        }
+
+        res.json(normalized);
     } catch (err) {
         next(err);
     }
