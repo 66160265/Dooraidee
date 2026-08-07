@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import MediaCard from "./MediaCard";
 import MediaCardSkeleton from "./MediaCardSkeleton";
 
-function MediaGrid({ mediaType }) {
+function MediaGrid({ mediaType, searchQuery }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,6 +24,14 @@ function MediaGrid({ mediaType }) {
     fetchData();
   }, [mediaType]);
 
+  console.log(items[0])
+
+  const filteredItems = items.filter((item) => {
+    const cleanTitle = item.title.replace(/\s+/g, "").toLowerCase();
+    const cleanQuery = searchQuery.replace(/\s+/g, "").toLowerCase();
+    return cleanTitle.includes(cleanQuery);
+  });
+
   if (loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
@@ -36,7 +44,7 @@ function MediaGrid({ mediaType }) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
-      {items.map((item) => (
+      {filteredItems.map((item) => (
         <MediaCard key={item.uniqueId} {...item} />
       ))}
     </div>
