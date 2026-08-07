@@ -84,7 +84,16 @@ function DetailPage({ mediaType }) {
                     )}
 
                     {item.studio && (
-                        <p className="mt-3 text-sm">ผลิตโดยสตูดิโอ {item.studio}</p>
+                        <div className="flex items-center gap-2 mt-3">
+                            {item.studioLogoUrl && (
+                                <img
+                                    src={item.studioLogoUrl}
+                                    alt={item.studio}
+                                    className="h-6 object-contain bg-white rounded px-1"
+                                />
+                            )}
+                            <p className="text-sm">ผลิตโดยสตูดิโอ {item.studio}</p>
+                        </div>
                     )}
                 </div>
             </div>
