@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import SearchBar from "../components/SearchBar";
 import MediaGrid from "../components/MediaGrid";
 
 function TvShows() {
+  const [searchQuery, setSearchQuery] = useState("");
+
   return (
     <>
       <h1>TvShows Page</h1>
-      <SearchBar />
-      <MediaGrid mediaType="tv" />
+      <SearchBar value={searchQuery} onChange={setSearchQuery} />
+      <MediaGrid mediaType="tv" searchQuery={searchQuery} />
     </>
   );
 }
