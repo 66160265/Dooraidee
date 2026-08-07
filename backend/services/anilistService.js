@@ -55,6 +55,27 @@ const AIRING_SCHEDULE_QUERY = `
     }
 `;
 
+const ANIME_LIST_QUERY = `
+    query ($page: Int, $perPage: Int) {
+        Page(page: $page, perPage: $perPage) {
+            pageInfo {
+                hasNextPage
+            }
+            media(type: ANIME, sort: POPULARITY_DESC) {
+                ${MEDIA_FIELDS}
+            }
+        }
+    }
+`;
+
+const ANIME_BY_ID_QUERY = `
+    query ($id: Int) {
+        Media(id: $id, type: ANIME) {
+            ${MEDIA_FIELDS}
+        }
+    }
+`;
+
 async function getTrendingAnime() {
   const { data } = await anilistClient.post("", {
     query: TRENDING_ANIME_QUERY,
@@ -70,7 +91,25 @@ async function getAiringSchedule(start, end) {
   return data.data.Page.airingSchedules;
 }
 
+async function getAnimeList(page, perPage) {
+  const { data } = await anilistClient.post("", {
+    query: ANIME_LIST_QUERY,
+    variables: { page, perPage },
+  });
+  return data.data.Page;
+}
+
+async function getAnimeById(id) {
+  const { data } = await anilistClient.post("", {
+    query: ANIME_BY_ID_QUERY,
+    variables: { id },
+  });
+  return data.data.Media;
+}
+
 module.exports = {
   getTrendingAnime,
   getAiringSchedule,
+  getAnimeList,
+  getAnimeById,
 };

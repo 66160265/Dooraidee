@@ -24,8 +24,32 @@ async function getWatchProviders(mediaType, id) {
     return data.results;
 }
 
+async function getDiscoverMovies(page) {
+    const { data } = await tmdbClient.get('/discover/movie', { params: { page } });
+    return data;
+}
+
+async function getDiscoverTvShows(page) {
+    const { data } = await tmdbClient.get('/discover/tv', { params: { page } });
+    return data;
+}
+
+async function getMovieById(id) {
+    const { data } = await tmdbClient.get(`/movie/${id}`);
+    return data;
+}
+
+async function getTvById(id) {
+    const { data } = await tmdbClient.get(`/tv/${id}`);
+    return data;
+}
+
 module.exports = {
     getTrendingMovies,
     getTrendingTvShows,
     getWatchProviders,
+    getDiscoverMovies,
+    getDiscoverTvShows,
+    getMovieById,
+    getTvById,
 };

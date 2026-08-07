@@ -19,7 +19,9 @@ function normalizeMovie(movie) {
         posterUrl: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
         score: movie.vote_average,
         releaseDate: movie.release_date,
-        genres: (movie.genre_ids || []).map((id) => TMDB_GENRE_MAP[id]).filter(Boolean),
+        genres: movie.genres
+            ? movie.genres.map((g) => g.name)
+            : (movie.genre_ids || []).map((id) => TMDB_GENRE_MAP[id]).filter(Boolean),
     };
 }
 
@@ -33,7 +35,9 @@ function normalizeTv(tvShow) {
         posterUrl: `https://image.tmdb.org/t/p/w500${tvShow.poster_path}`,
         score: tvShow.vote_average,
         releaseDate: tvShow.first_air_date,
-        genres: (tvShow.genre_ids || []).map((id) => TMDB_GENRE_MAP[id]).filter(Boolean),
+        genres: tvShow.genres
+            ? tvShow.genres.map((g) => g.name)
+            : (tvShow.genre_ids || []).map((id) => TMDB_GENRE_MAP[id]).filter(Boolean),
     };
 }
 
