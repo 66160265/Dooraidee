@@ -62,6 +62,14 @@ function isAdultAnime(anime) {
     return Boolean(anime.isAdult) || (anime.genres || []).includes('Hentai');
 }
 
+const ADULT_TMDB_KEYWORDS = new Set(['hentai', 'erotic']);
+
+function isAdultTmdb(item) {
+    if (item.adult) return true;
+    const keywordList = item.keywords?.keywords || item.keywords?.results || [];
+    return keywordList.some((k) => ADULT_TMDB_KEYWORDS.has(k.name));
+}
+
 function normalizeWatchProviders(results) {
     const regionData = results.TH || results.US;
 
@@ -96,5 +104,6 @@ module.exports = {
     normalizeAnime,
     normalizeWatchProviders,
     isAdultAnime,
+    isAdultTmdb,
     TMDB_GENRE_MAP,
 };
