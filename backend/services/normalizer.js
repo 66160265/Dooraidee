@@ -58,6 +58,10 @@ function normalizeAnime(anime) {
     };
 }
 
+function isAdultAnime(anime) {
+    return Boolean(anime.isAdult) || (anime.genres || []).includes('Hentai');
+}
+
 function normalizeWatchProviders(results) {
     const regionData = results.TH || results.US;
 
@@ -91,5 +95,6 @@ module.exports = {
     normalizeTv,
     normalizeAnime,
     normalizeWatchProviders,
+    isAdultAnime,
     TMDB_GENRE_MAP,
 };

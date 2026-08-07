@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const anilistService = require('../services/anilistService');
-const { normalizeAnime } = require('../services/normalizer');
+const { normalizeAnime, isAdultAnime } = require('../services/normalizer');
 
 const PER_PAGE = 20;
 
@@ -17,7 +17,7 @@ router.get('/', async (req, res, next) => {
         res.json({
             page,
             hasNextPage: data.pageInfo.hasNextPage,
-            results: data.media.map(normalizeAnime),
+            results: data.media.filter((a) => !isAdultAnime(a)).map(normalizeAnime),
         });
     } catch (err) {
         next(err);
@@ -27,6 +27,9 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
     try {
         const anime = await anilistService.getAnimeById(Number(req.params.id));
+        if (isAdultAnime(anime)) {
+            return res.status(404).json({ error: 'Not found' });
+        }
         res.json(normalizeAnime(anime));
     } catch (err) {
         next(err);
