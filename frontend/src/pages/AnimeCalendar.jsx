@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import MediaCard from "../components/MediaCard";
+import MediaCardSkeleton from "../components/MediaCardSkeleton";
 import Countdown from "../components/Countdown";
 import slugify from "../utils/slugify";
 
@@ -99,7 +100,18 @@ function AnimeCalendar() {
     }, []);
 
     if (loading) {
-        return <p className="text-gray-500 px-4 pt-8">กำลังโหลด...</p>;
+        return (
+            <div className="max-w-[1400px] mx-auto px-4 pt-8 pb-8">
+                <div className="relative rounded-3xl mb-10 h-[300px] bg-gray-200 overflow-hidden shimmer" />
+                <div className="relative h-11 w-64 bg-gray-100 rounded-full mb-6 overflow-hidden shimmer" />
+                <div className="relative h-9 w-72 bg-gray-200 rounded-full mb-6 overflow-hidden shimmer" />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <MediaCardSkeleton key={i} />
+                    ))}
+                </div>
+            </div>
+        );
     }
 
     return (

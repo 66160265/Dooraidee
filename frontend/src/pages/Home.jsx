@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AiringTodayCarousel from "../components/AiringTodayCarousel";
+import AiringTodayCardSkeleton from "../components/AiringTodayCardSkeleton";
 
 function Home() {
     const [items, setItems] = useState([]);
@@ -62,7 +63,11 @@ function Home() {
 
                 <div className="rounded-3xl bg-[#E6F8FE] py-8 shadow-sm">
                     {loading ? (
-                        <p className="text-gray-500 px-4">กำลังโหลด...</p>
+                        <div className="flex gap-6 px-4 overflow-hidden">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <AiringTodayCardSkeleton key={i} />
+                            ))}
+                        </div>
                     ) : (
                         <AiringTodayCarousel items={items} />
                     )}
