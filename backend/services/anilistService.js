@@ -77,6 +77,19 @@ const ANIME_BY_ID_QUERY = `
     }
 `;
 
+const ANIME_EXTERNAL_LINKS_QUERY = `
+    query ($id: Int) {
+        Media(id: $id, type: ANIME) {
+            externalLinks {
+                url
+                site
+                type
+                icon
+            }
+        }
+    }
+`;
+
 async function getTrendingAnime() {
   const { data } = await anilistClient.post("", {
     query: TRENDING_ANIME_QUERY,
@@ -109,9 +122,18 @@ async function getAnimeById(id) {
   return data.data.Media;
 }
 
+async function getAnimeExternalLinks(id) {
+  const { data } = await anilistClient.post("", {
+    query: ANIME_EXTERNAL_LINKS_QUERY,
+    variables: { id },
+  });
+  return data.data.Media.externalLinks;
+}
+
 module.exports = {
   getTrendingAnime,
   getAiringSchedule,
   getAnimeList,
   getAnimeById,
+  getAnimeExternalLinks,
 };

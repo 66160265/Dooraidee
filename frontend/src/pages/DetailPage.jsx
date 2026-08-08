@@ -36,8 +36,6 @@ function DetailPage({ mediaType }) {
     }, [id, mediaType]);
 
     useEffect(() => {
-        if (mediaType === "anime") return;
-
         async function fetchProviders() {
             try {
                 const res = await fetch(`http://localhost:4000/api/watch-providers/${mediaType}/${id}`);
@@ -105,7 +103,7 @@ function DetailPage({ mediaType }) {
                         {watchProviders.platforms.map((p) => (
                             <a
                                 key={p.name}
-                                href={watchProviders.link}
+                                href={p.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 hover:scale-105 transition-transform"

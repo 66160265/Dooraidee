@@ -46,8 +46,6 @@ function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = []
     const [platforms, setPlatforms] = useState([]);
 
     useEffect(() => {
-        if (mediaType !== "movie" && mediaType !== "tv") return;
-
         async function fetchProviders() {
             try {
                 const res = await fetch(`http://localhost:4000/api/watch-providers/${mediaType}/${originalId}`);

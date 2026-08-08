@@ -91,11 +91,24 @@ function normalizeWatchProviders(results) {
             seen.add(provider.provider_name);
             platforms.push({
                 name: provider.provider_name,
-                logoUrl: `https://image.tmdb.org/t/p/w92${provider.logo_path}`
+                logoUrl: `https://image.tmdb.org/t/p/w92${provider.logo_path}`,
+                url: regionData.link,
             })
         }
     }
     return { platforms, link: regionData.link };
+}
+
+function normalizeAnimeWatchProviders(externalLinks) {
+    const platforms = (externalLinks || [])
+        .filter((link) => link.type === 'STREAMING')
+        .map((link) => ({
+            name: link.site,
+            logoUrl: link.icon,
+            url: link.url,
+        }));
+
+    return { platforms, link: null };
 }
 
 module.exports = {
@@ -103,6 +116,7 @@ module.exports = {
     normalizeTv,
     normalizeAnime,
     normalizeWatchProviders,
+    normalizeAnimeWatchProviders,
     isAdultAnime,
     isAdultTmdb,
     TMDB_GENRE_MAP,
