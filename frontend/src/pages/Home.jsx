@@ -42,7 +42,13 @@ function Home() {
                             to="/movies"
                             className="inline-block bg-white/15 backdrop-blur-sm border border-white/40 text-white text-lg font-semibold px-8 py-3 rounded-full hover:bg-white/25 hover:-translate-y-0.5 transition-all"
                         >
-                            ดูหนัง
+                            ดูรายชื่อหนัง
+                        </Link>
+                        <Link
+                            to="/tv-shows"
+                            className="inline-block bg-white/15 backdrop-blur-sm border border-white/40 text-white text-lg font-semibold px-8 py-3 rounded-full hover:bg-white/25 hover:-translate-y-0.5 transition-all"
+                        >
+                            ดูรายชื่อซีรีส์
                         </Link>
                     </div>
                 </div>

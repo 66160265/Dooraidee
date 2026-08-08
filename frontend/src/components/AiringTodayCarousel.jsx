@@ -1,5 +1,5 @@
 import useEmblaCarousel from "embla-carousel-react";
-import MediaCard from "./MediaCard";
+import AiringTodayCard from "./AiringTodayCard";
 
 function AiringTodayCarousel({ items }) {
     const [emblaRef] = useEmblaCarousel({ loop: false, align: "start" });
@@ -10,14 +10,14 @@ function AiringTodayCarousel({ items }) {
 
     return (
         <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex gap-4 px-4">
+            <div className="flex gap-6 px-4">
                 {items.map((item, i) => (
                     <div
                         key={item.uniqueId}
-                        className="shrink-0 w-[380px] animate-fade-in-up"
+                        className="animate-fade-in-up"
                         style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}
                     >
-                        <MediaCard {...item} />
+                        <AiringTodayCard {...item} />
                     </div>
                 ))}
             </div>
