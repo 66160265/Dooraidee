@@ -41,13 +41,33 @@ function normalizeTv(tvShow) {
     };
 }
 
+// Streaming platforms actually available/legally operating in Thailand.
+// AniList's externalLinks aren't region-tagged, so we allowlist by site name.
+const TH_AVAILABLE_SITES = new Set([
+    'netflix',
+    'iq', 'iqiyi',
+    'wetv',
+    'viu',
+    'bilibili', 'bilibili tv',
+    'amazon prime video', 'prime video',
+    'disney plus', 'disney+',
+    'youtube',
+    'trueid',
+    'crunchyroll',
+]);
+
+function normalizeSiteName(name) {
+    return (name || '').toLowerCase().trim();
+}
+
 function extractStreamingPlatforms(externalLinks) {
     return (externalLinks || [])
-        .filter((link) => link.type === 'STREAMING')
+        .filter((link) => link.type === 'STREAMING' && TH_AVAILABLE_SITES.has(normalizeSiteName(link.site)))
         .map((link) => ({
             name: link.site,
             logoUrl: link.icon,
             url: link.url,
+            color: link.color || null,
         }));
 }
 
@@ -82,7 +102,7 @@ function isAdultTmdb(item) {
 }
 
 function normalizeWatchProviders(results) {
-    const regionData = results.TH || results.US;
+    const regionData = results.TH;
 
     if (!regionData) {
         return { platforms: [], link: null};

@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { genreLabel } from "../utils/genreLabels";
+import PlatformIcon from "../components/PlatformIcon";
 
 const ENDPOINT_MAP = {
     movie: "movies",
@@ -88,7 +89,7 @@ function DetailPage({ mediaType }) {
                                 <img
                                     src={item.studioLogoUrl}
                                     alt={item.studio}
-                                    className="h-28 w-auto object-contain bg-white rounded-lg p-3 shadow-[0_0_5px_rgba(0,0,0,0.2)]"
+                                    className="h-16 w-auto max-w-[200px] object-contain bg-white rounded-lg p-2.5 shadow-[0_0_5px_rgba(0,0,0,0.2)]"
                                 />
                             )}
                         </div>
@@ -108,7 +109,7 @@ function DetailPage({ mediaType }) {
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 hover:scale-105 transition-transform"
                             >
-                                <img src={p.logoUrl} alt={p.name} className="w-6 h-6 rounded" />
+                                <PlatformIcon {...p} />
                                 <span className="text-black text-sm">{p.name}</span>
                             </a>
                         ))}

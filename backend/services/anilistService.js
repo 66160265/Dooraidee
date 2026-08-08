@@ -35,6 +35,7 @@ const MEDIA_FIELDS = `
       site
       type
       icon
+      color
     }
 `;
 
@@ -91,6 +92,7 @@ const ANIME_EXTERNAL_LINKS_QUERY = `
                 site
                 type
                 icon
+                color
             }
         }
     }

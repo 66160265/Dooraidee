@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import slugify from '../utils/slugify';
 import { genreLabel } from '../utils/genreLabels';
+import PlatformIcon from './PlatformIcon';
 
 const ROUTE_MAP = {
     movie: "movies",
@@ -87,7 +88,7 @@ function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = []
                     <div className="mt-auto pt-2 border-t border-black/15 flex justify-between items-center">
                         <div className="flex items-center gap-1.5">
                             {visiblePlatforms.map((p, i) => (
-                                <img key={`${p.name}-${i}`} src={p.logoUrl} alt={p.name} title={p.name} className="w-6 h-6 rounded" />
+                                <PlatformIcon key={`${p.name}-${i}`} {...p} />
                             ))}
                             {extraPlatformCount > 0 && (
                                 <span className="w-6 h-6 rounded-full bg-[#36b9e9] text-white text-xs flex items-center justify-center">
