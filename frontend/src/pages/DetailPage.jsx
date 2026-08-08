@@ -37,9 +37,11 @@ function DetailPage({ mediaType }) {
     }, [id, mediaType]);
 
     useEffect(() => {
+        if (!item) return;
+
         async function fetchProviders() {
             try {
-                const res = await fetch(`http://localhost:4000/api/watch-providers/${mediaType}/${id}`);
+                const res = await fetch(`http://localhost:4000/api/watch-providers/${mediaType}/${id}?title=${encodeURIComponent(item.title)}`);
                 const data = await res.json();
                 setWatchProviders(data);
             } catch (err) {
@@ -47,7 +49,7 @@ function DetailPage({ mediaType }) {
             }
         }
         fetchProviders();
-    }, [mediaType, id]);
+    }, [mediaType, id, item]);
 
     if (loading) return <p className="text-center pt-8">กำลังโหลด...</p>;
     if (!item) return <p className="text-center pt-8">ไม่พบข้อมูล</p>;

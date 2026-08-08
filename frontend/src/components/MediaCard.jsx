@@ -54,7 +54,7 @@ function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = []
 
         async function fetchProviders() {
             try {
-                const res = await fetch(`http://localhost:4000/api/watch-providers/${mediaType}/${originalId}`);
+                const res = await fetch(`http://localhost:4000/api/watch-providers/${mediaType}/${originalId}?title=${encodeURIComponent(title)}`);
                 const data = await res.json();
                 setFetchedPlatforms(data.platforms || []);
             } catch (err) {
@@ -62,7 +62,7 @@ function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = []
             }
         }
         fetchProviders();
-    }, [mediaType, originalId]);
+    }, [mediaType, originalId, title]);
 
     const platforms = mediaType === "anime" ? embeddedPlatforms : fetchedPlatforms;
     const visiblePlatforms = platforms.slice(0, 3);
