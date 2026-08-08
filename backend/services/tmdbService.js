@@ -82,6 +82,23 @@ async function findCompanyLogoUrl(name) {
     return match ? `https://image.tmdb.org/t/p/w200${match.logo_path}` : null;
 }
 
+async function getUpcomingMovies(page) {
+    const { data } = await tmdbClient.get('/movie/upcoming', {
+        params: { region: 'TH', page, include_adult: false, without_keywords: EXCLUDED_KEYWORDS },
+    });
+    return data;
+}
+
+async function getOnTheAirTv(page) {
+    const { data } = await tmdbClient.get('/tv/on_the_air', { params: { page } });
+    return data;
+}
+
+async function getTvNextEpisode(id) {
+    const { data } = await tmdbClient.get(`/tv/${id}`);
+    return data.next_episode_to_air || null;
+}
+
 async function getMovieById(id) {
     const [{ data }, thOverview] = await Promise.all([
         tmdbClient.get(`/movie/${id}`, {
@@ -121,4 +138,7 @@ module.exports = {
     getMovieById,
     getTvById,
     findCompanyLogoUrl,
+    getUpcomingMovies,
+    getOnTheAirTv,
+    getTvNextEpisode,
 };

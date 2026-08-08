@@ -42,6 +42,7 @@ function DetailPage({ mediaType }) {
         async function fetchProviders() {
             try {
                 const res = await fetch(`http://localhost:4000/api/watch-providers/${mediaType}/${id}?title=${encodeURIComponent(item.title)}`);
+                if (!res.ok) return;
                 const data = await res.json();
                 setWatchProviders(data);
             } catch (err) {

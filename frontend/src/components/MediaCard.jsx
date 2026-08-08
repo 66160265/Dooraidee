@@ -43,7 +43,7 @@ function ClockIcon() {
     );
 }
 
-function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = [], episode, airingAt, platforms: embeddedPlatforms = [] }) {
+function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = [], episode, airingAt, dateLabel, platforms: embeddedPlatforms = [] }) {
     const [fetchedPlatforms, setFetchedPlatforms] = useState([]);
 
     useEffect(() => {
@@ -102,6 +102,8 @@ function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = []
                                 <span className="flex items-center gap-1"><CalendarIcon />{formatAiringDay(airingAt)}</span>
                                 <span className="flex items-center gap-1"><ClockIcon />{formatAiringTime(airingAt)}</span>
                             </div>
+                        ) : dateLabel ? (
+                            <span className="flex items-center gap-1 text-xs text-black/70 shrink-0"><CalendarIcon />{dateLabel}</span>
                         ) : (
                             <span className="text-yellow-600 text-sm shrink-0">⭐ {score.toFixed(1)}</span>
                         )}

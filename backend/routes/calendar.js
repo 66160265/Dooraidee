@@ -12,17 +12,24 @@ function startOfBangkokDay(date) {
     return new Date(bangkokTime.getTime() - BANGKOK_OFFSET_MS);
 }
 
-function normalizeSchedule(node) {
+function bangkokDayOfWeek(unixSeconds) {
+    return new Date(unixSeconds * 1000 + BANGKOK_OFFSET_MS).getUTCDay();
+}
+
+function normalizeUpcomingEpisode(anime) {
     return {
-        ...normalizeAnime(node.media),
-        airingAt: node.airingAt,
-        episode: node.episode,
+        ...normalizeAnime(anime),
+        airingAt: anime.nextAiringEpisode.airingAt,
+        episode: anime.nextAiringEpisode.episode,
     };
 }
 
-async function fetchSchedule(startSec, endSec) {
-    const rawSchedules = await anilistService.getAiringSchedule(startSec, endSec);
-    return rawSchedules.filter((node) => !isAdultAnime(node.media)).map(normalizeSchedule);
+async function fetchReleasingSchedule() {
+    const releasing = await anilistService.getReleasingAnime();
+    return releasing
+        .filter((anime) => anime.nextAiringEpisode)
+        .filter((anime) => !isAdultAnime(anime))
+        .map(normalizeUpcomingEpisode);
 }
 
 router.get('/today', async (req, res, next) => {
@@ -30,7 +37,9 @@ router.get('/today', async (req, res, next) => {
         const startSec = Math.floor(startOfBangkokDay(new Date()).getTime() / 1000);
         const endSec = startSec + 24 * 60 * 60;
 
-        const items = await fetchSchedule(startSec, endSec);
+        const items = (await fetchReleasingSchedule())
+            .filter((item) => item.airingAt >= startSec && item.airingAt < endSec)
+            .sort((a, b) => a.airingAt - b.airingAt);
 
         res.json({ count: items.length, results: items });
     } catch (err) {
@@ -40,18 +49,27 @@ router.get('/today', async (req, res, next) => {
 
 router.get('/', async (req, res, next) => {
     try {
-        const startSec = Math.floor(startOfBangkokDay(new Date()).getTime() / 1000);
-        const endSec = startSec + 7 * 24 * 60 * 60;
+        const items = await fetchReleasingSchedule();
 
-        const items = await fetchSchedule(startSec, endSec);
-
+        // nextAiringEpisode is only ever the single next occurrence, so a show
+        // whose episode already aired earlier today points at next week's —
+        // still the same weekday it always airs on. Bucket by weekday (a
+        // recurring weekly slot) rather than a strict "next 7 days" window,
+        // so today's full lineup shows even for shows that already aired.
         const days = THAI_DAYS.map((dayOfWeek) => ({ dayOfWeek, items: [] }));
         for (const item of items) {
-            const bangkokDate = new Date(item.airingAt * 1000 + BANGKOK_OFFSET_MS);
-            days[bangkokDate.getUTCDay()].items.push(item);
+            days[bangkokDayOfWeek(item.airingAt)].items.push(item);
         }
+        days.forEach((day) => day.items.sort((a, b) => a.airingAt - b.airingAt));
 
-        res.json({ days });
+        // Present days starting from today, wrapping around the week.
+        const todayIndex = bangkokDayOfWeek(Math.floor(Date.now() / 1000));
+        const orderedDays = [...days.slice(todayIndex), ...days.slice(0, todayIndex)];
+
+        const nowSec = Math.floor(Date.now() / 1000);
+        const upcoming = items.filter((item) => item.airingAt >= nowSec).sort((a, b) => a.airingAt - b.airingAt);
+
+        res.json({ days: orderedDays, soonest: upcoming[0] || null });
     } catch (err) {
         next(err);
     }
