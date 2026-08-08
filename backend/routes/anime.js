@@ -75,6 +75,24 @@ async function findTotalPages(filters, firstPage) {
     return searchPromise;
 }
 
+// AniList's search argument only matches romaji/English titles — searching
+// in Japanese (or any script AniList doesn't index) returns nothing even
+// when the anime exists. MyAnimeList's own search does index native titles,
+// so as a fallback, look it up there and cross-reference the hits back into
+// AniList's data shape via idMal. Scoped to a single page of MAL's results
+// since this is a rare fallback path, not the primary browsing flow.
+async function searchByNativeTitleFallback(query, page) {
+    const offset = (page - 1) * PER_PAGE;
+    const malHits = await malService.searchAnime(query, PER_PAGE, offset).catch(() => []);
+    const malIds = malHits.map((hit) => hit.node.id);
+    const anilistMatches = await anilistService.getAnimeByMalIds(malIds).catch(() => []);
+
+    const byMalId = new Map(anilistMatches.map((media) => [media.idMal, media]));
+    const media = malIds.map((id) => byMalId.get(id)).filter(Boolean);
+
+    return { media, pageInfo: { hasNextPage: false } };
+}
+
 router.get('/', async (req, res, next) => {
     try {
         const page = Number(req.query.page) || 1;
@@ -86,8 +104,15 @@ router.get('/', async (req, res, next) => {
             search: search || undefined,
         };
 
-        const data = await anilistService.getAnimeList(page, PER_PAGE, filters);
-        const totalPages = await findTotalPages(filters, page === 1 ? data : await anilistService.getAnimeList(1, PER_PAGE, filters));
+        let data = await anilistService.getAnimeList(page, PER_PAGE, filters);
+        let totalPages;
+
+        if (filters.search && data.media.length === 0) {
+            data = await searchByNativeTitleFallback(filters.search, page);
+            totalPages = data.media.length > 0 ? 1 : 0;
+        } else {
+            totalPages = await findTotalPages(filters, page === 1 ? data : await anilistService.getAnimeList(1, PER_PAGE, filters));
+        }
 
         res.json({
             page,

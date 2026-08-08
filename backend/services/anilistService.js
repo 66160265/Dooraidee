@@ -205,6 +205,19 @@ const ANIME_BY_ID_QUERY = `
     }
 `;
 
+// Used to cross-reference MyAnimeList search hits (MAL's search indexes
+// native/Japanese titles, AniList's doesn't) back into AniList's own data
+// shape via the shared MAL id.
+const ANIME_BY_MAL_IDS_QUERY = `
+    query ($ids: [Int]) {
+        Page(page: 1, perPage: 25) {
+            media(type: ANIME, idMal_in: $ids, isAdult: false) {
+                ${MEDIA_FIELDS}
+            }
+        }
+    }
+`;
+
 const ANIME_EXTERNAL_LINKS_QUERY = `
     query ($id: Int) {
         Media(id: $id, type: ANIME) {
@@ -259,10 +272,17 @@ async function getAnimeExternalLinks(id) {
   return data.Media.externalLinks;
 }
 
+async function getAnimeByMalIds(ids) {
+  if (ids.length === 0) return [];
+  const data = await postGraphQL(ANIME_BY_MAL_IDS_QUERY, { ids });
+  return data.Page.media;
+}
+
 module.exports = {
   getTrendingAnime,
   getReleasingAnime,
   getAnimeList,
   getAnimeById,
   getAnimeExternalLinks,
+  getAnimeByMalIds,
 };
