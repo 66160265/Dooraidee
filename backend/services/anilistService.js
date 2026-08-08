@@ -7,25 +7,57 @@ const anilistClient = axios.create({
 });
 
 const RETRYABLE_ERROR_CODES = new Set(["ECONNRESET", "ETIMEDOUT", "ECONNABORTED", "EAI_AGAIN"]);
+const MAX_RETRIES = 3;
 
-function retryDelayMs(err) {
-  if (err.response?.status === 429) return 1500; // rate-limited — back off longer
+// AniList's rate limit is tight enough that a single retry often lands
+// inside the same throttle window and fails again. Back off longer each
+// attempt, and prefer AniList's own Retry-After header (seconds) when it
+// sends one — it knows the real window better than a guess does.
+function retryDelayMs(err, attempt) {
+  if (err.response?.status === 429) {
+    const retryAfter = Number(err.response.headers?.["retry-after"]);
+    if (Number.isFinite(retryAfter) && retryAfter > 0) return retryAfter * 1000;
+    return 1500 * attempt;
+  }
   if (RETRYABLE_ERROR_CODES.has(err.code)) return 500; // dropped connection — brief retry
   return null;
 }
 
-// AniList's connection occasionally drops mid-request (ECONNRESET) under load,
-// and bursts of requests can get rate-limited (429); retry once before giving up.
+async function postGraphQLOnce(query, variables) {
+  const { data } = await anilistClient.post("", { query, variables });
+  return data.data;
+}
+
+// Multiple identical requests can land at nearly the same time (React
+// StrictMode's double-invoked effects in dev, several browser tabs, the
+// totalPages binary search racing itself under concurrent users) — without
+// dedup each one fires its own request, and a burst like that is exactly
+// what trips AniList's rate limit. In-flight requests for the same
+// query+variables share one promise instead of each hitting the network.
+const inFlightRequests = new Map();
+
 async function postGraphQL(query, variables) {
+  const key = JSON.stringify({ query, variables });
+  const existing = inFlightRequests.get(key);
+  if (existing) return existing;
+
+  const promise = (async () => {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await postGraphQLOnce(query, variables);
+      } catch (err) {
+        const delay = attempt <= MAX_RETRIES ? retryDelayMs(err, attempt) : null;
+        if (delay === null) throw err;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  })();
+
+  inFlightRequests.set(key, promise);
   try {
-    const { data } = await anilistClient.post("", { query, variables });
-    return data.data;
-  } catch (err) {
-    const delay = retryDelayMs(err);
-    if (delay === null) throw err;
-    await new Promise((resolve) => setTimeout(resolve, delay));
-    const { data } = await anilistClient.post("", { query, variables });
-    return data.data;
+    return await promise;
+  } finally {
+    inFlightRequests.delete(key);
   }
 }
 

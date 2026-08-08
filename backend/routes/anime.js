@@ -16,6 +16,13 @@ const PAGE_COUNT_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 // once — every other page request for the same filters reuses the result.
 const pageCountCache = new Map();
 
+// A binary search is ~10 AniList requests — if two requests for the same
+// uncached filter combo land close together (StrictMode's double effect,
+// several users browsing the same filter), each running its own search
+// multiplies that into a burst big enough to trip AniList's rate limit.
+// Sharing the in-flight promise collapses concurrent searches into one.
+const inFlightSearches = new Map();
+
 function cacheKey(filters) {
     return JSON.stringify(filters);
 }
@@ -25,6 +32,25 @@ async function pageHasResults(page, filters) {
     return result.media.length > 0;
 }
 
+async function searchTotalPages(filters, firstPage) {
+    if (firstPage.media.length === 0) return 0;
+    if (!firstPage.pageInfo.hasNextPage) return 1;
+    if (await pageHasResults(MAX_PAGE, filters)) return MAX_PAGE;
+
+    let lastGood = 1;
+    let firstBad = MAX_PAGE;
+    while (lastGood + 1 < firstBad) {
+        const mid = Math.floor((lastGood + firstBad) / 2);
+        // eslint-disable-next-line no-await-in-loop
+        if (await pageHasResults(mid, filters)) {
+            lastGood = mid;
+        } else {
+            firstBad = mid;
+        }
+    }
+    return lastGood;
+}
+
 async function findTotalPages(filters, firstPage) {
     const key = cacheKey(filters);
     const cached = pageCountCache.get(key);
@@ -32,30 +58,21 @@ async function findTotalPages(filters, firstPage) {
         return cached.totalPages;
     }
 
-    let totalPages;
-    if (firstPage.media.length === 0) {
-        totalPages = 0;
-    } else if (!firstPage.pageInfo.hasNextPage) {
-        totalPages = 1;
-    } else if (await pageHasResults(MAX_PAGE, filters)) {
-        totalPages = MAX_PAGE;
-    } else {
-        let lastGood = 1;
-        let firstBad = MAX_PAGE;
-        while (lastGood + 1 < firstBad) {
-            const mid = Math.floor((lastGood + firstBad) / 2);
-            // eslint-disable-next-line no-await-in-loop
-            if (await pageHasResults(mid, filters)) {
-                lastGood = mid;
-            } else {
-                firstBad = mid;
-            }
-        }
-        totalPages = lastGood;
-    }
+    const existingSearch = inFlightSearches.get(key);
+    if (existingSearch) return existingSearch;
 
-    pageCountCache.set(key, { totalPages, expiresAt: Date.now() + PAGE_COUNT_CACHE_TTL_MS });
-    return totalPages;
+    const searchPromise = (async () => {
+        try {
+            const totalPages = await searchTotalPages(filters, firstPage);
+            pageCountCache.set(key, { totalPages, expiresAt: Date.now() + PAGE_COUNT_CACHE_TTL_MS });
+            return totalPages;
+        } finally {
+            inFlightSearches.delete(key);
+        }
+    })();
+
+    inFlightSearches.set(key, searchPromise);
+    return searchPromise;
 }
 
 router.get('/', async (req, res, next) => {
