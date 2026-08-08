@@ -9,15 +9,20 @@ const anilistClient = axios.create({
 const RETRYABLE_ERROR_CODES = new Set(["ECONNRESET", "ETIMEDOUT", "ECONNABORTED", "EAI_AGAIN"]);
 const MAX_RETRIES = 3;
 
+const MAX_RETRY_DELAY_MS = 5000;
+
 // AniList's rate limit is tight enough that a single retry often lands
 // inside the same throttle window and fails again. Back off longer each
 // attempt, and prefer AniList's own Retry-After header (seconds) when it
-// sends one — it knows the real window better than a guess does.
+// sends one — it knows the real window better than a guess does. Capped so
+// a large Retry-After (AniList can ask for a full minute under sustained
+// throttling) doesn't stall a request longer than a user will wait for —
+// better to fail fast into the frontend's error state than hang.
 function retryDelayMs(err, attempt) {
   if (err.response?.status === 429) {
     const retryAfter = Number(err.response.headers?.["retry-after"]);
-    if (Number.isFinite(retryAfter) && retryAfter > 0) return retryAfter * 1000;
-    return 1500 * attempt;
+    if (Number.isFinite(retryAfter) && retryAfter > 0) return Math.min(retryAfter * 1000, MAX_RETRY_DELAY_MS);
+    return Math.min(1500 * attempt, MAX_RETRY_DELAY_MS);
   }
   if (RETRYABLE_ERROR_CODES.has(err.code)) return 500; // dropped connection — brief retry
   return null;
