@@ -192,7 +192,36 @@ function isAdultTmdb(item) {
     return keywordList.some((k) => ADULT_TMDB_KEYWORDS.has(k.name));
 }
 
-function normalizeWatchProviders(results) {
+// TMDB's watch-providers API only gives one combined link per region (its
+// own aggregator page), not a per-provider deep link. Build a search URL on
+// each provider's own site instead so clicking a platform actually lands
+// there, matching the direct links anime platforms already get from AniList.
+const PROVIDER_SEARCH_URL_TEMPLATES = {
+    netflix: (q) => `https://www.netflix.com/th/search?q=${q}`,
+    'amazon prime video': (q) => `https://www.primevideo.com/search/ref=atv_nb_sug?phrase=${q}`,
+    'apple tv': (q) => `https://tv.apple.com/th/search?term=${q}`,
+    'apple tv store': (q) => `https://tv.apple.com/th/search?term=${q}`,
+    'apple tv+': (q) => `https://tv.apple.com/th/search?term=${q}`,
+    'google play movies': (q) => `https://play.google.com/store/search?q=${q}&c=movies`,
+    'hbo max': (q) => `https://www.max.com/th/en/search?q=${q}`,
+    max: (q) => `https://www.max.com/th/en/search?q=${q}`,
+    'disney plus': (q) => `https://www.disneyplus.com/search/${q}`,
+    'disney+': (q) => `https://www.disneyplus.com/search/${q}`,
+    crunchyroll: (q) => `https://www.crunchyroll.com/search?q=${q}`,
+    viu: (q) => `https://www.viu.com/ott/th/th/search?q=${q}`,
+    iqiyi: (q) => `https://www.iq.com/search?query=${q}`,
+    iq: (q) => `https://www.iq.com/search?query=${q}`,
+    wetv: (q) => `https://wetv.vip/en/search?q=${q}`,
+    youtube: (q) => `https://www.youtube.com/results?search_query=${q}`,
+};
+
+function buildProviderSearchUrl(providerName, title, fallbackUrl) {
+    const template = PROVIDER_SEARCH_URL_TEMPLATES[normalizeSiteName(providerName)];
+    if (!template || !title) return fallbackUrl;
+    return template(encodeURIComponent(title));
+}
+
+function normalizeWatchProviders(results, title) {
     const regionData = results.TH;
 
     if (!regionData) {
@@ -214,7 +243,7 @@ function normalizeWatchProviders(results) {
             platforms.push({
                 name: provider.provider_name,
                 logoUrl: `https://image.tmdb.org/t/p/w92${provider.logo_path}`,
-                url: regionData.link,
+                url: buildProviderSearchUrl(provider.provider_name, title, regionData.link),
             })
         }
     }

@@ -14,7 +14,7 @@ router.get('/:mediaType/:id', async (req, res, next) => {
         }
 
         const rawResults = await tmdbService.getWatchProviders(mediaType, id);
-        const normalized = normalizeWatchProviders(rawResults);
+        const normalized = normalizeWatchProviders(rawResults, req.query.title);
         res.json(normalized);
     } catch (err) {
         next(err);
