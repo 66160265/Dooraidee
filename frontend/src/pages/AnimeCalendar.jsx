@@ -6,9 +6,9 @@ import Countdown from "../components/Countdown";
 import slugify from "../utils/slugify";
 
 const TABS = [
-    { key: "anime", label: "อนิเมะ" },
     { key: "movie", label: "หนัง" },
     { key: "tv", label: "ซีรีส์" },
+    { key: "anime", label: "อนิเมะ" },
 ];
 
 function formatShortThaiDate(dateString) {

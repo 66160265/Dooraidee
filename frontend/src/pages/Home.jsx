@@ -32,24 +32,24 @@ function Home() {
                 <div className="relative animate-fade-in-up">
                     <p className="text-white text-4xl md:text-5xl font-bold drop-shadow-sm">ยินดีต้อนรับเข้าสู่ Dooraidee</p>
                     <p className="text-white/90 text-lg md:text-xl mt-3">ศูนย์รวมหนัง ซีรีส์ และอนิเมะที่คุณชื่นชอบ</p>
-                    <div className="mt-8 flex flex-wrap justify-center gap-3">
-                        <Link
-                            to="/anime"
-                            className="inline-block bg-white text-[#0090c7] text-lg font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
-                        >
-                            ดูรายชื่ออนิเมะ
-                        </Link>
+                    <div className="mt-8 flex flex-wrap justify-center gap-4">
                         <Link
                             to="/movies"
-                            className="inline-block bg-white/15 backdrop-blur-sm border border-white/40 text-white text-lg font-semibold px-8 py-3 rounded-full hover:bg-white/25 hover:-translate-y-0.5 transition-all"
+                            className="inline-block bg-white text-[#0090c7] text-lg font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-105 transition-all"
                         >
                             ดูรายชื่อหนัง
                         </Link>
                         <Link
                             to="/tv-shows"
-                            className="inline-block bg-white/15 backdrop-blur-sm border border-white/40 text-white text-lg font-semibold px-8 py-3 rounded-full hover:bg-white/25 hover:-translate-y-0.5 transition-all"
+                            className="inline-block bg-white text-[#0090c7] text-lg font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-105 transition-all"
                         >
                             ดูรายชื่อซีรีส์
+                        </Link>
+                        <Link
+                            to="/anime"
+                            className="inline-block bg-white text-[#0090c7] text-lg font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-105 transition-all"
+                        >
+                            ดูรายชื่ออนิเมะ
                         </Link>
                     </div>
                 </div>
