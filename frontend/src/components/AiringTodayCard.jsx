@@ -18,7 +18,7 @@ function formatAiringTime(airingAt) {
 
 function AiringTodayCard({ title, posterUrl, originalId, airingAt }) {
     return (
-        <Link to={`/anime/detail/${originalId}/${slugify(title)}`} className="group block w-[220px] shrink-0">
+        <Link to={`/anime/detail/${originalId}/${slugify(title)}`} className="group block w-[150px] sm:w-[220px] shrink-0">
             {airingAt && (
                 <p className="text-center text-sm font-medium text-[#0090c7] mb-2">
                     {formatAiringDay(airingAt)} {formatAiringTime(airingAt)}

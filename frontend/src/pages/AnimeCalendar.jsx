@@ -25,7 +25,7 @@ function HeroCountdown({ item }) {
     return (
         <Link
             to={`/anime/detail/${item.originalId}/${slugify(item.title)}`}
-            className="group block relative rounded-3xl overflow-hidden mb-10 h-[300px] bg-gradient-to-br from-[#54d1ff] via-[#36b9e9] to-[#0090c7] shadow-[0_10px_40px_rgba(54,185,233,0.35)]"
+            className="group block relative rounded-2xl sm:rounded-3xl overflow-hidden mb-6 sm:mb-10 h-[220px] sm:h-[300px] bg-gradient-to-br from-[#54d1ff] via-[#36b9e9] to-[#0090c7] shadow-[0_10px_40px_rgba(54,185,233,0.35)]"
         >
             <img
                 src={item.posterUrl}
@@ -37,9 +37,9 @@ function HeroCountdown({ item }) {
 
             <div className="relative z-10 h-full flex flex-col items-center justify-center text-white text-center px-4">
                 <span className="text-xs uppercase tracking-widest text-white/70 mb-2">ออกอากาศเร็วที่สุด</span>
-                <h2 className="text-2xl md:text-3xl font-bold drop-shadow-sm">{item.title}</h2>
-                <p className="mt-1 text-white/90">ตอนที่ {item.episode}</p>
-                <div className="mt-5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-6 py-3">
+                <h2 className="text-lg sm:text-2xl md:text-3xl font-bold drop-shadow-sm">{item.title}</h2>
+                <p className="mt-1 text-sm sm:text-base text-white/90">ตอนที่ {item.episode}</p>
+                <div className="mt-3 sm:mt-5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-4 sm:px-6 py-2.5 sm:py-3">
                     <Countdown targetTimestamp={item.airingAt} />
                 </div>
             </div>
@@ -102,7 +102,7 @@ function AnimeCalendar() {
     if (loading) {
         return (
             <div className="max-w-[1400px] mx-auto px-4 pt-8 pb-8">
-                <div className="relative rounded-3xl mb-10 h-[300px] bg-gray-200 overflow-hidden shimmer" />
+                <div className="relative rounded-2xl sm:rounded-3xl mb-6 sm:mb-10 h-[220px] sm:h-[300px] bg-gray-200 overflow-hidden shimmer" />
                 <div className="relative h-11 w-64 bg-gray-100 rounded-full mb-6 overflow-hidden shimmer" />
                 <div className="relative h-9 w-72 bg-gray-200 rounded-full mb-6 overflow-hidden shimmer" />
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -136,7 +136,7 @@ function AnimeCalendar() {
 
             {activeTab === "anime" && (
                 <>
-                    <h1 className="text-3xl font-bold mb-6">ปฏิทินออกอากาศอนิเมะ</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">ปฏิทินออกอากาศอนิเมะ</h1>
                     {days.map((day) => (
                         <div key={day.dayOfWeek} className="mb-10">
                             <div className="flex items-center gap-3 mb-3">
@@ -159,14 +159,14 @@ function AnimeCalendar() {
 
             {activeTab === "movie" && (
                 <>
-                    <h1 className="text-3xl font-bold mb-6 animate-fade-in-up">หนังเข้าฉายเร็วๆ นี้</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 animate-fade-in-up">หนังเข้าฉายเร็วๆ นี้</h1>
                     <ReleaseGrid items={movies} dateField="releaseDate" />
                 </>
             )}
 
             {activeTab === "tv" && (
                 <>
-                    <h1 className="text-3xl font-bold mb-6 animate-fade-in-up">ซีรีส์ตอนใหม่</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 animate-fade-in-up">ซีรีส์ตอนใหม่</h1>
                     <ReleaseGrid items={tvShows} dateField="nextEpisodeDate" />
                 </>
             )}

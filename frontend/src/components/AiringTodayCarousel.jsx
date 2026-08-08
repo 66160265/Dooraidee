@@ -52,14 +52,14 @@ function AiringTodayCarousel({ items }) {
 
     return (
         <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-14 bg-gradient-to-r from-[#E6F8FE] to-transparent z-[5]" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-14 bg-gradient-to-l from-[#E6F8FE] to-transparent z-[5]" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-14 bg-gradient-to-r from-[#E6F8FE] to-transparent z-[5]" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-8 sm:w-14 bg-gradient-to-l from-[#E6F8FE] to-transparent z-[5]" />
 
             <ScrollButton direction="prev" onClick={() => emblaApi?.scrollPrev()} disabled={!canScrollPrev} />
             <ScrollButton direction="next" onClick={() => emblaApi?.scrollNext()} disabled={!canScrollNext} />
 
-            <div className="overflow-hidden px-10" ref={emblaRef}>
-                <div className="flex gap-6">
+            <div className="overflow-hidden px-6 sm:px-10" ref={emblaRef}>
+                <div className="flex gap-4 sm:gap-6">
                     {items.map((item, i) => (
                         <div
                             key={item.uniqueId}

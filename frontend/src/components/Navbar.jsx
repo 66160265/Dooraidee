@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 const LINKS = [
   { to: "/", label: "หน้าแรก" },
@@ -18,8 +19,22 @@ function LogoMark() {
   );
 }
 
+function MenuIcon({ open }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+      {open ? <path d="M18 6 6 18M6 6l12 12" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+    </svg>
+  );
+}
+
 function Navbar() {
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Close the mobile menu automatically whenever the route changes.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <header>
@@ -30,7 +45,8 @@ function Navbar() {
               <LogoMark />
               Dooraidee
             </Link>
-            <ul className="flex gap-1">
+
+            <ul className="hidden md:flex gap-1">
               {LINKS.map((link) => {
                 const active = location.pathname === link.to;
                 return (
@@ -50,8 +66,37 @@ function Navbar() {
                 );
               })}
             </ul>
+
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="เปิดเมนู"
+              aria-expanded={menuOpen}
+              className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <MenuIcon open={menuOpen} />
+            </button>
           </div>
         </div>
+
+        {menuOpen && (
+          <ul className="md:hidden flex flex-col gap-1 px-4 pb-4">
+            {LINKS.map((link) => {
+              const active = location.pathname === link.to;
+              return (
+                <li key={link.to}>
+                  <Link
+                    to={link.to}
+                    className={`block px-3 py-2.5 rounded-lg font-medium transition-colors ${
+                      active ? "text-white bg-white/15" : "text-white/85 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </nav>
     </header>
   );

@@ -12,7 +12,7 @@ function TvShows() {
       <div className="max-w-[1200px] mx-auto px-4 pt-8">
         <div className="flex items-center gap-3">
           <span className="w-1.5 h-8 rounded-full bg-gradient-to-b from-[#54d1ff] to-[#0090c7]" />
-          <h1 className="text-3xl font-bold">ซีรีส์</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">ซีรีส์</h1>
         </div>
       </div>
       <SearchBar value={searchQuery} onChange={setSearchQuery} />

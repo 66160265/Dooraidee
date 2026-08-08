@@ -56,8 +56,8 @@ function DetailPage({ mediaType }) {
         return (
             <div className="max-w-[1200px] mx-auto pt-8 pb-16 px-4">
                 <div className="relative h-9 w-28 bg-gray-100 rounded-full mb-4 overflow-hidden shimmer" />
-                <div className="flex flex-col md:flex-row gap-6 bg-white rounded-3xl p-6 shadow-sm">
-                    <div className="relative w-full md:w-[250px] h-[350px] rounded-2xl shrink-0 bg-gray-200 overflow-hidden shimmer" />
+                <div className="flex flex-col md:flex-row gap-6 bg-white rounded-3xl p-4 sm:p-6 shadow-sm">
+                    <div className="relative w-full md:w-[250px] h-[300px] sm:h-[350px] rounded-2xl shrink-0 bg-gray-200 overflow-hidden shimmer" />
                     <div className="flex-1 space-y-4">
                         <div className="relative h-8 w-3/4 bg-gray-200 rounded-full overflow-hidden shimmer" />
                         <div className="flex gap-2">
@@ -106,14 +106,14 @@ function DetailPage({ mediaType }) {
                         &larr; ย้อนกลับ
                     </button>
 
-                    <div className="flex flex-col md:flex-row gap-6 bg-white/70 backdrop-blur-md rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.08)] animate-fade-in-up">
+                    <div className="flex flex-col md:flex-row gap-5 sm:gap-6 bg-white/70 backdrop-blur-md rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-[0_10px_40px_rgba(0,0,0,0.08)] animate-fade-in-up">
                         <img
                             src={item.posterUrl}
                             alt={item.title}
-                            className="w-full md:w-[250px] h-[350px] object-cover rounded-2xl shrink-0 shadow-lg"
+                            className="w-full md:w-[250px] h-[300px] sm:h-[350px] object-cover rounded-2xl shrink-0 shadow-lg"
                         />
                         <div className="flex-1">
-                            <h1 className="text-3xl font-bold flex-wrap">{item.title}</h1>
+                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold flex-wrap">{item.title}</h1>
 
                             <div className="flex flex-wrap items-center gap-2 mt-3">
                                 <span className="flex items-center gap-1 bg-yellow-400/90 text-black text-sm font-semibold px-3 py-1 rounded-full">
@@ -126,7 +126,7 @@ function DetailPage({ mediaType }) {
                                 )}
                             </div>
 
-                            <p className="mt-4 text-lg leading-relaxed text-black/80">{item.description}</p>
+                            <p className="mt-4 text-sm sm:text-base md:text-lg leading-relaxed text-black/80">{item.description}</p>
 
                             {item.genres?.length > 0 && (
                                 <div className="flex flex-wrap gap-2 mt-4">
@@ -157,7 +157,7 @@ function DetailPage({ mediaType }) {
 
             {watchProviders.platforms.length > 0 && (
                 <div className="max-w-[1200px] mx-auto px-4 mt-6">
-                    <div className="bg-[#b1e5ff] rounded-3xl p-6 shadow-sm">
+                    <div className="bg-[#b1e5ff] rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
                         <div className="flex items-center gap-3 mb-4">
                             <span className="w-1.5 h-6 rounded-full bg-gradient-to-b from-[#54d1ff] to-[#0090c7]" />
                             <h2 className="text-xl font-semibold">ช่องทางการรับชม</h2>
