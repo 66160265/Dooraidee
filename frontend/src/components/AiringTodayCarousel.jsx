@@ -1,47 +1,75 @@
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
-import slugify from "../utils/slugify";
+import AiringTodayCard from "./AiringTodayCard";
 
-function formatAiringTime(airingAt) {
-    return new Date(airingAt * 1000).toLocaleTimeString("th-TH", {
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "Asia/Bangkok",
-    });
+function ChevronIcon({ direction }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+            <polyline points={direction === "prev" ? "15 18 9 12 15 6" : "9 18 15 12 9 6"} />
+        </svg>
+    );
+}
+
+function ScrollButton({ direction, onClick, disabled }) {
+    return (
+        <button
+            onClick={onClick}
+            disabled={disabled}
+            aria-label={direction === "prev" ? "เลื่อนไปก่อนหน้า" : "เลื่อนไปถัดไป"}
+            className={`absolute top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center text-[#0090c7] transition-all hover:scale-110 hover:shadow-xl disabled:opacity-0 disabled:pointer-events-none ${
+                direction === "prev" ? "left-2" : "right-2"
+            }`}
+        >
+            <ChevronIcon direction={direction} />
+        </button>
+    );
 }
 
 function AiringTodayCarousel({ items }) {
-    const [emblaRef] = useEmblaCarousel({ loop: false, align: "start" });
+    const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: "start" });
+    const [canScrollPrev, setCanScrollPrev] = useState(false);
+    const [canScrollNext, setCanScrollNext] = useState(false);
+
+    const onSelect = useCallback((api) => {
+        setCanScrollPrev(api.canScrollPrev());
+        setCanScrollNext(api.canScrollNext());
+    }, []);
+
+    useEffect(() => {
+        if (!emblaApi) return;
+        onSelect(emblaApi);
+        emblaApi.on("select", onSelect);
+        emblaApi.on("reInit", onSelect);
+        return () => {
+            emblaApi.off("select", onSelect);
+            emblaApi.off("reInit", onSelect);
+        };
+    }, [emblaApi, onSelect]);
 
     if (items.length === 0) {
         return <p className="text-gray-500 px-4">วันนี้ไม่มีอนิเมะออกอากาศ</p>;
     }
 
     return (
-        <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex gap-6 px-6">
-                {items.map((item) => (
-                    <Link
-                        key={item.uniqueId}
-                        to={`/anime/detail/${item.originalId}/${slugify(item.title)}`}
-                        className="shrink-0 w-[200px] rounded-lg overflow-hidden shadow-[0_0_10px_rgba(0,0,0,0.4)] hover:scale-105 transition-transform"
-                    >
-                        <div className="relative">
-                            <img
-                                src={item.posterUrl}
-                                alt={item.title}
-                                className="w-full h-[310px] object-cover"
-                            />
-                            <div className="absolute top-2 right-2 bg-white text-black text-sm px-3 py-1 rounded-full shadow-[0_0_5px_rgba(0,0,0,0.2)]">
-                                {formatAiringTime(item.airingAt)} น.
-                            </div>
-                            <div className="absolute bottom-0 left-0 w-full bg-black/80 text-white text-sm p-2">
-                                <p className="truncate">{item.title}</p>
-                                <p className="text-gray-300 text-xs">ตอนที่ {item.episode}</p>
-                            </div>
+        <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-14 bg-gradient-to-r from-[#E6F8FE] to-transparent z-[5]" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-8 sm:w-14 bg-gradient-to-l from-[#E6F8FE] to-transparent z-[5]" />
+
+            <ScrollButton direction="prev" onClick={() => emblaApi?.scrollPrev()} disabled={!canScrollPrev} />
+            <ScrollButton direction="next" onClick={() => emblaApi?.scrollNext()} disabled={!canScrollNext} />
+
+            <div className="overflow-hidden px-6 sm:px-10" ref={emblaRef}>
+                <div className="flex gap-4 sm:gap-6">
+                    {items.map((item, i) => (
+                        <div
+                            key={item.uniqueId}
+                            className="animate-fade-in-up"
+                            style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}
+                        >
+                            <AiringTodayCard {...item} />
                         </div>
-                    </Link>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
     );

@@ -9,6 +9,10 @@ const tmdbClient = axios.create({
     },
 });
 
+// TMDB keyword IDs for adult/hentai content — TMDB's own `adult` flag often
+// doesn't catch these, so exclude them explicitly via without_keywords.
+const EXCLUDED_KEYWORDS = '198385,256466'; // hentai, erotic
+
 async function getTrendingMovies() {
     const { data } = await tmdbClient.get('/trending/movie/day');
     return data.results;
@@ -30,6 +34,8 @@ async function getDiscoverMovies(page, filters = {}) {
             page,
             with_genres: filters.genreId,
             primary_release_year: filters.year,
+            include_adult: false,
+            without_keywords: EXCLUDED_KEYWORDS,
         },
     });
     return data;
@@ -41,18 +47,83 @@ async function getDiscoverTvShows(page, filters = {}) {
             page,
             with_genres: filters.genreId,
             first_air_date_year: filters.year,
+            include_adult: false,
+            without_keywords: EXCLUDED_KEYWORDS,
         },
     });
     return data;
 }
 
+async function searchMovies(page, query) {
+    const { data } = await tmdbClient.get('/search/movie', {
+        params: { page, query, include_adult: false },
+    });
+    return data;
+}
+
+async function searchTvShows(page, query) {
+    const { data } = await tmdbClient.get('/search/tv', {
+        params: { page, query, include_adult: false },
+    });
+    return data;
+}
+
+async function findCompanyLogoUrl(name) {
+    const { data } = await tmdbClient.get('/search/company', {
+        params: { query: name },
+    });
+
+    const exactMatch = data.results.find(
+        (c) => c.name.toLowerCase() === name.toLowerCase() && c.logo_path
+    );
+    const anyMatch = data.results.find((c) => c.logo_path);
+    const match = exactMatch || anyMatch;
+
+    return match ? `https://image.tmdb.org/t/p/w200${match.logo_path}` : null;
+}
+
+async function getUpcomingMovies(page) {
+    const { data } = await tmdbClient.get('/movie/upcoming', {
+        params: { region: 'TH', page, include_adult: false, without_keywords: EXCLUDED_KEYWORDS },
+    });
+    return data;
+}
+
+async function getOnTheAirTv(page) {
+    const { data } = await tmdbClient.get('/tv/on_the_air', { params: { page } });
+    return data;
+}
+
+async function getTvNextEpisode(id) {
+    const { data } = await tmdbClient.get(`/tv/${id}`);
+    return data.next_episode_to_air || null;
+}
+
 async function getMovieById(id) {
-    const { data } = await tmdbClient.get(`/movie/${id}`);
+    const [{ data }, thOverview] = await Promise.all([
+        tmdbClient.get(`/movie/${id}`, {
+            params: { append_to_response: 'keywords' },
+        }),
+        tmdbClient
+            .get(`/movie/${id}`, { params: { language: 'th-TH' } })
+            .then((res) => res.data.overview)
+            .catch(() => null),
+    ]);
+    if (thOverview) data.overview = thOverview;
     return data;
 }
 
 async function getTvById(id) {
-    const { data } = await tmdbClient.get(`/tv/${id}`);
+    const [{ data }, thOverview] = await Promise.all([
+        tmdbClient.get(`/tv/${id}`, {
+            params: { append_to_response: 'keywords' },
+        }),
+        tmdbClient
+            .get(`/tv/${id}`, { params: { language: 'th-TH' } })
+            .then((res) => res.data.overview)
+            .catch(() => null),
+    ]);
+    if (thOverview) data.overview = thOverview;
     return data;
 }
 
@@ -62,6 +133,12 @@ module.exports = {
     getWatchProviders,
     getDiscoverMovies,
     getDiscoverTvShows,
+    searchMovies,
+    searchTvShows,
     getMovieById,
     getTvById,
+    findCompanyLogoUrl,
+    getUpcomingMovies,
+    getOnTheAirTv,
+    getTvNextEpisode,
 };

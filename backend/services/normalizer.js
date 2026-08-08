@@ -41,10 +41,118 @@ function normalizeTv(tvShow) {
     };
 }
 
+// Streaming platforms actually available/legally operating in Thailand.
+// AniList's externalLinks aren't region-tagged, so we allowlist by site name.
+const TH_AVAILABLE_SITES = new Set([
+    'netflix',
+    'iq', 'iqiyi',
+    'wetv',
+    'viu',
+    'bilibili', 'bilibili tv',
+    'amazon prime video', 'prime video',
+    'disney plus', 'disney+',
+    'youtube',
+    'trueid',
+    'crunchyroll',
+]);
+
+// Real full-color logos sourced from TMDB's watch-provider database —
+// more accurate than AniList's flat icon+color composite. Platforms not
+// listed here (TrueID, Bilibili) fall back to the AniList icon+color.
+const TMDB_PROVIDER_LOGOS = {
+    netflix: '/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg',
+    'amazon prime video': '/pvske1MyAoymrs5bguRfVqYiM9a.jpg',
+    'prime video': '/pvske1MyAoymrs5bguRfVqYiM9a.jpg',
+    'disney plus': '/tHtNW975SmVydaBULhEaOqPTmo8.jpg',
+    'disney+': '/tHtNW975SmVydaBULhEaOqPTmo8.jpg',
+    viu: '/o7WsYI2r1llIf9h6JTGVX9yTHPx.jpg',
+    crunchyroll: '/fzN5Jok5Ig1eJ7gyNGoMhnLSCfh.jpg',
+    iq: '/c4eVkfMna2VzHzZ8N2vWXUnMrlD.jpg',
+    iqiyi: '/c4eVkfMna2VzHzZ8N2vWXUnMrlD.jpg',
+    wetv: '/r3tmJFjecQGAfHjWOafhr1pux6b.jpg',
+};
+
+// Known official anime-distribution YouTube channel handles -> display name.
+const KNOWN_YOUTUBE_CHANNELS = {
+    museasia: 'Muse Asia',
+    musethailand: 'Muse Thailand',
+    museindonesia: 'Muse Indonesia',
+    musemalaysia: 'Muse Malaysia',
+    musevietnam: 'Muse Vietnam',
+    musephilippines: 'Muse Philippines',
+    museindia: 'Muse India',
+    anioneasia: 'Ani-One Asia',
+    netflixanime: 'Netflix Anime',
+    crunchyrollcollection: 'Crunchyroll Collection',
+};
+
+function normalizeSiteName(name) {
+    return (name || '').toLowerCase().trim();
+}
+
+function formatYoutubeHandle(handle) {
+    const key = handle.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (KNOWN_YOUTUBE_CHANNELS[key]) return KNOWN_YOUTUBE_CHANNELS[key];
+    return handle
+        .replace(/[_-]+/g, ' ')
+        .trim()
+        .split(' ')
+        .filter(Boolean)
+        .map((w) => w[0].toUpperCase() + w.slice(1))
+        .join(' ');
+}
+
+function extractYoutubeChannelName(url) {
+    const match = (url || '').match(/youtube\.com\/@([^/?&]+)/i);
+    if (!match) return null; // playlist/channel-id links carry no readable name
+    const handle = decodeURIComponent(match[1]);
+    if (!/[a-zA-Z]/.test(handle)) return null; // non-Latin handles aren't useful display names
+    return formatYoutubeHandle(handle);
+}
+
+function resolvePlatformLogo(link) {
+    const key = normalizeSiteName(link.site);
+    if (TMDB_PROVIDER_LOGOS[key]) {
+        return { logoUrl: `https://image.tmdb.org/t/p/w92${TMDB_PROVIDER_LOGOS[key]}`, color: null };
+    }
+    return { logoUrl: link.icon, color: link.color || null };
+}
+
+function extractStreamingPlatforms(externalLinks) {
+    const seen = new Set();
+    const platforms = [];
+
+    for (const link of externalLinks || []) {
+        if (link.type !== 'STREAMING') continue;
+        const siteKey = normalizeSiteName(link.site);
+        if (!TH_AVAILABLE_SITES.has(siteKey)) continue;
+
+        let name = link.site;
+        if (siteKey === 'youtube') {
+            const channelName = extractYoutubeChannelName(link.url);
+            if (!channelName) continue; // skip links with no resolvable channel name
+            name = channelName;
+        }
+
+        const dedupeKey = name.toLowerCase();
+        if (seen.has(dedupeKey)) continue;
+        seen.add(dedupeKey);
+
+        platforms.push({
+            name,
+            url: link.url,
+            ...resolvePlatformLogo(link),
+        });
+    }
+
+    return platforms;
+}
+
 function normalizeAnime(anime) {
     return {
         uniqueId: `anime-${anime.id}`,
         originalId: anime.id,
+        idMal: anime.idMal || null,
         mediaType: 'anime',
         title: anime.title.english || anime.title.romaji,
         description: anime.description,
@@ -55,11 +163,66 @@ function normalizeAnime(anime) {
         studio: anime.studios?.nodes?.[0]?.name || null,
         season: anime.season || null,
         seasonYear: anime.seasonYear || null,
+        platforms: extractStreamingPlatforms(anime.externalLinks),
     };
 }
 
-function normalizeWatchProviders(results) {
-    const regionData = results.TH || results.US;
+const MAL_RATING_LABELS_TH = {
+    g: 'เหมาะสำหรับทุกวัย',
+    pg: 'เด็กควรมีผู้ปกครองแนะนำ',
+    pg_13: 'เหมาะสำหรับอายุ 13 ปีขึ้นไป',
+    r: 'เหมาะสำหรับอายุ 17 ปีขึ้นไป (มีความรุนแรง)',
+    'r+': 'เหมาะสำหรับอายุ 17 ปีขึ้นไป (มีภาพโป๊เปลือย)',
+    rx: 'สำหรับผู้ใหญ่เท่านั้น',
+};
+
+function ageRatingLabel(rating) {
+    return MAL_RATING_LABELS_TH[rating] || null;
+}
+
+function isAdultAnime(anime) {
+    return Boolean(anime.isAdult) || (anime.genres || []).includes('Hentai');
+}
+
+const ADULT_TMDB_KEYWORDS = new Set(['hentai', 'erotic']);
+
+function isAdultTmdb(item) {
+    if (item.adult) return true;
+    const keywordList = item.keywords?.keywords || item.keywords?.results || [];
+    return keywordList.some((k) => ADULT_TMDB_KEYWORDS.has(k.name));
+}
+
+// TMDB's watch-providers API only gives one combined link per region (its
+// own aggregator page), not a per-provider deep link. Build a search URL on
+// each provider's own site instead so clicking a platform actually lands
+// there, matching the direct links anime platforms already get from AniList.
+const PROVIDER_SEARCH_URL_TEMPLATES = {
+    netflix: (q) => `https://www.netflix.com/th/search?q=${q}`,
+    'amazon prime video': (q) => `https://www.primevideo.com/search/ref=atv_nb_sug?phrase=${q}`,
+    'apple tv': (q) => `https://tv.apple.com/th/search?term=${q}`,
+    'apple tv store': (q) => `https://tv.apple.com/th/search?term=${q}`,
+    'apple tv+': (q) => `https://tv.apple.com/th/search?term=${q}`,
+    'google play movies': (q) => `https://play.google.com/store/search?q=${q}&c=movies`,
+    'hbo max': (q) => `https://www.max.com/th/en/search?q=${q}`,
+    max: (q) => `https://www.max.com/th/en/search?q=${q}`,
+    'disney plus': (q) => `https://www.disneyplus.com/search/${q}`,
+    'disney+': (q) => `https://www.disneyplus.com/search/${q}`,
+    crunchyroll: (q) => `https://www.crunchyroll.com/search?q=${q}`,
+    viu: (q) => `https://www.viu.com/ott/th/th/search?q=${q}`,
+    iqiyi: (q) => `https://www.iq.com/search?query=${q}`,
+    iq: (q) => `https://www.iq.com/search?query=${q}`,
+    wetv: (q) => `https://wetv.vip/en/search?q=${q}`,
+    youtube: (q) => `https://www.youtube.com/results?search_query=${q}`,
+};
+
+function buildProviderSearchUrl(providerName, title, fallbackUrl) {
+    const template = PROVIDER_SEARCH_URL_TEMPLATES[normalizeSiteName(providerName)];
+    if (!template || !title) return fallbackUrl;
+    return template(encodeURIComponent(title));
+}
+
+function normalizeWatchProviders(results, title) {
+    const regionData = results.TH;
 
     if (!regionData) {
         return { platforms: [], link: null};
@@ -79,11 +242,16 @@ function normalizeWatchProviders(results) {
             seen.add(provider.provider_name);
             platforms.push({
                 name: provider.provider_name,
-                logoUrl: `https://image.tmdb.org/t/p/w92${provider.logo_path}`
+                logoUrl: `https://image.tmdb.org/t/p/w92${provider.logo_path}`,
+                url: buildProviderSearchUrl(provider.provider_name, title, regionData.link),
             })
         }
     }
     return { platforms, link: regionData.link };
+}
+
+function normalizeAnimeWatchProviders(externalLinks) {
+    return { platforms: extractStreamingPlatforms(externalLinks), link: null };
 }
 
 module.exports = {
@@ -91,5 +259,9 @@ module.exports = {
     normalizeTv,
     normalizeAnime,
     normalizeWatchProviders,
+    normalizeAnimeWatchProviders,
+    isAdultAnime,
+    isAdultTmdb,
+    ageRatingLabel,
     TMDB_GENRE_MAP,
 };
