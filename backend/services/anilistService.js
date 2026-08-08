@@ -28,7 +28,25 @@ function retryDelayMs(err, attempt) {
   return null;
 }
 
+// AniList's public rate limit is tight (reports put it around 30
+// requests/minute — roughly one every 2s). Space outbound requests apart
+// globally at that rate so a burst (calendar's 4 parallel page fetches, a
+// totalPages binary search's ~8 probes, several distinct fresh filters at
+// once) gets serialized with gaps instead of firing all at once — cheaper
+// than reacting to 429s after the fact. Caching (below) means this only
+// ever matters for genuinely new, uncached requests.
+const MIN_REQUEST_INTERVAL_MS = 2000;
+let nextAvailableAt = 0;
+
+async function throttleGate() {
+  const now = Date.now();
+  const wait = Math.max(0, nextAvailableAt - now);
+  nextAvailableAt = Math.max(now, nextAvailableAt) + MIN_REQUEST_INTERVAL_MS;
+  if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+}
+
 async function postGraphQLOnce(query, variables) {
+  await throttleGate();
   const { data } = await anilistClient.post("", { query, variables });
   return data.data;
 }
@@ -41,18 +59,50 @@ async function postGraphQLOnce(query, variables) {
 // query+variables share one promise instead of each hitting the network.
 const inFlightRequests = new Map();
 
-async function postGraphQL(query, variables) {
+// A short response cache means repeat visits (or several users browsing
+// the same page/filter/anime) don't hit AniList at all — free to run, and
+// the single biggest lever against 429s since it avoids the network call
+// entirely instead of just retrying it more gracefully. If a fresh fetch
+// ultimately fails after retries, a stale cached value (even expired) is
+// served instead of an error — a slightly outdated anime list beats a
+// broken page.
+const cache = new Map();
+const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+// Entries stay around well past their freshness TTL so they're still usable
+// as a stale-on-error fallback, but not forever — bounds memory on a
+// long-running instance since nothing ever explicitly clears this Map.
+const HARD_EXPIRE_MS = 6 * 60 * 60 * 1000; // 6 hours
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of cache) {
+    if (entry.hardExpiresAt <= now) cache.delete(key);
+  }
+}, 30 * 60 * 1000).unref();
+
+async function postGraphQL(query, variables, { ttlMs = DEFAULT_CACHE_TTL_MS } = {}) {
   const key = JSON.stringify({ query, variables });
+
+  const cached = cache.get(key);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.data;
+  }
+
   const existing = inFlightRequests.get(key);
   if (existing) return existing;
 
   const promise = (async () => {
     for (let attempt = 1; ; attempt++) {
       try {
-        return await postGraphQLOnce(query, variables);
+        const data = await postGraphQLOnce(query, variables);
+        cache.set(key, { data, expiresAt: Date.now() + ttlMs, hardExpiresAt: Date.now() + HARD_EXPIRE_MS });
+        return data;
       } catch (err) {
         const delay = attempt <= MAX_RETRIES ? retryDelayMs(err, attempt) : null;
-        if (delay === null) throw err;
+        if (delay === null) {
+          if (cached) return cached.data; // stale-but-served beats a broken page
+          throw err;
+        }
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
@@ -194,13 +244,18 @@ async function getAnimeList(page, perPage, filters = {}) {
   return data.Page;
 }
 
+// Detail data for a given anime essentially never changes within an hour,
+// and detail pages for popular titles get hit repeatedly — worth a much
+// longer TTL than the default.
+const DETAIL_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
 async function getAnimeById(id) {
-  const data = await postGraphQL(ANIME_BY_ID_QUERY, { id });
+  const data = await postGraphQL(ANIME_BY_ID_QUERY, { id }, { ttlMs: DETAIL_CACHE_TTL_MS });
   return data.Media;
 }
 
 async function getAnimeExternalLinks(id) {
-  const data = await postGraphQL(ANIME_EXTERNAL_LINKS_QUERY, { id });
+  const data = await postGraphQL(ANIME_EXTERNAL_LINKS_QUERY, { id }, { ttlMs: DETAIL_CACHE_TTL_MS });
   return data.Media.externalLinks;
 }
 
