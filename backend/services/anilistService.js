@@ -7,6 +7,7 @@ const anilistClient = axios.create({
 
 const MEDIA_FIELDS = `
     id
+    idMal
     isAdult
     title {
       romaji

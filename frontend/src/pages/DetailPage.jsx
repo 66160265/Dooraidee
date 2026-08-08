@@ -72,6 +72,12 @@ function DetailPage({ mediaType }) {
                     <p className="mt-2 text-lg">{item.description}</p>
                     <p className="mt-2">⭐ {item.score.toFixed(1)}</p>
 
+                    {item.ageRating && (
+                        <p className="mt-2 inline-block bg-black/70 text-white text-xs px-2.5 py-1 rounded-md">
+                            {item.ageRating}
+                        </p>
+                    )}
+
                     {item.genres?.length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-3">
                             {item.genres.map((g) => (
