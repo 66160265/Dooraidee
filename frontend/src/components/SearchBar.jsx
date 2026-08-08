@@ -20,7 +20,7 @@ function SearchBar({ value, onChange }) {
                     placeholder="พิมพ์ชื่อเรื่องได้ที่นี่..."
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
-                    className="w-full h-12 rounded-full border border-gray-200 bg-white pl-11 pr-4 text-lg shadow-sm transition-all focus:outline-none focus:border-[#36b9e9] focus:shadow-[0_0_0_4px_rgba(54,185,233,0.15)]"
+                    className="w-full h-11 sm:h-12 rounded-full border border-gray-200 bg-white pl-11 pr-4 text-base sm:text-lg shadow-sm transition-all focus:outline-none focus:border-[#36b9e9] focus:shadow-[0_0_0_4px_rgba(54,185,233,0.15)]"
                 />
             </div>
         </div>

@@ -70,8 +70,8 @@ function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = []
 
     return (
         <Link to={`/${ROUTE_MAP[mediaType]}/detail/${originalId}/${slugify(title)}`} className="group block">
-            <div className="flex h-[220px] rounded-2xl overflow-hidden shadow-md bg-[#b1e5ff] transition-all duration-300 group-hover:shadow-[0_8px_30px_rgba(54,185,233,0.35)] group-hover:-translate-y-1">
-                <div className="relative w-[150px] h-full shrink-0 overflow-hidden">
+            <div className="flex h-[180px] sm:h-[220px] rounded-2xl overflow-hidden shadow-md bg-[#b1e5ff] transition-all duration-300 group-hover:shadow-[0_8px_30px_rgba(54,185,233,0.35)] group-hover:-translate-y-1">
+                <div className="relative w-[110px] sm:w-[150px] h-full shrink-0 overflow-hidden">
                     <img
                         src={posterUrl}
                         alt={title}

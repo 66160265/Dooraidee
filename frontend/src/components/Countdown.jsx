@@ -25,7 +25,7 @@ function Countdown({ targetTimestamp }) {
 
     return (
         <div className="text-center">
-            <p className="text-4xl font-bold tabular-nums tracking-wide">{remaining}</p>
+            <p className="text-2xl sm:text-4xl font-bold tabular-nums tracking-wide">{remaining}</p>
             <p className="mt-1 text-sm text-white/80">กำลังรอออกอากาศ</p>
         </div>
     );
