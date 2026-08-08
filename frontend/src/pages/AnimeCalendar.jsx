@@ -54,7 +54,7 @@ function ReleaseGrid({ items, dateField }) {
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             {items.map((item, i) => (
                 <div key={item.uniqueId} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(i, 10) * 40}ms` }}>
                     <MediaCard {...item} dateLabel={formatShortThaiDate(item[dateField])} />
@@ -66,6 +66,7 @@ function ReleaseGrid({ items, dateField }) {
 
 function AnimeCalendar() {
     const [activeTab, setActiveTab] = useState("anime");
+    const [selectedDay, setSelectedDay] = useState("all");
     const [days, setDays] = useState([]);
     const [soonest, setSoonest] = useState(null);
     const [movies, setMovies] = useState([]);
@@ -102,11 +103,11 @@ function AnimeCalendar() {
 
     if (loading) {
         return (
-            <div className="max-w-[1400px] mx-auto px-4 pt-8 pb-8">
+            <div className="max-w-[1800px] mx-auto px-4 pt-8 pb-8">
                 <div className="relative rounded-2xl sm:rounded-3xl mb-6 sm:mb-10 h-[220px] sm:h-[300px] bg-gray-200 overflow-hidden shimmer" />
                 <div className="relative h-11 w-64 bg-gray-100 rounded-full mb-6 overflow-hidden shimmer" />
                 <div className="relative h-9 w-72 bg-gray-200 rounded-full mb-6 overflow-hidden shimmer" />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                     {Array.from({ length: 4 }).map((_, i) => (
                         <MediaCardSkeleton key={i} />
                     ))}
@@ -116,7 +117,7 @@ function AnimeCalendar() {
     }
 
     return (
-        <div className="max-w-[1400px] mx-auto px-4 pt-8 pb-8">
+        <div className="max-w-[1800px] mx-auto px-4 pt-8 pb-8">
             {activeTab === "anime" && <HeroCountdown item={soonest} />}
 
             <div className="flex gap-2 mb-6 bg-[#E6F8FE] p-1.5 rounded-full w-fit shadow-inner">
@@ -138,23 +139,52 @@ function AnimeCalendar() {
             {activeTab === "anime" && (
                 <>
                     <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">ปฏิทินออกอากาศอนิเมะ</h1>
-                    {days.map((day) => (
-                        <div key={day.dayOfWeek} className="mb-10">
-                            <div className="flex items-center gap-3 mb-3">
-                                <span className="w-1.5 h-6 rounded-full bg-gradient-to-b from-[#54d1ff] to-[#0090c7]" />
-                                <h2 className="text-xl font-semibold text-[#0090c7]">{day.dayOfWeek}</h2>
-                            </div>
-                            {day.items.length === 0 ? (
-                                <p className="text-gray-500 pl-4">ไม่มีอนิเมะออกอากาศ</p>
-                            ) : (
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                    {day.items.map((item) => (
-                                        <MediaCard key={`${item.uniqueId}-${item.airingAt}`} {...item} />
-                                    ))}
+
+                    <div className="flex gap-2 mb-6 flex-wrap">
+                        <button
+                            onClick={() => setSelectedDay("all")}
+                            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                                selectedDay === "all"
+                                    ? "bg-gradient-to-br from-[#54d1ff] to-[#0090c7] text-white shadow-[0_4px_14px_rgba(54,185,233,0.4)]"
+                                    : "bg-[#E6F8FE] text-black/70 hover:bg-[#b1e5ff]"
+                            }`}
+                        >
+                            ทั้งหมด
+                        </button>
+                        {days.map((day) => (
+                            <button
+                                key={day.dayOfWeek}
+                                onClick={() => setSelectedDay(day.dayOfWeek)}
+                                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                                    selectedDay === day.dayOfWeek
+                                        ? "bg-gradient-to-br from-[#54d1ff] to-[#0090c7] text-white shadow-[0_4px_14px_rgba(54,185,233,0.4)]"
+                                        : "bg-[#E6F8FE] text-black/70 hover:bg-[#b1e5ff]"
+                                }`}
+                            >
+                                {day.dayOfWeek.replace("วัน", "")}
+                            </button>
+                        ))}
+                    </div>
+
+                    {days
+                        .filter((day) => selectedDay === "all" || day.dayOfWeek === selectedDay)
+                        .map((day) => (
+                            <div key={day.dayOfWeek} className="mb-10">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <span className="w-1.5 h-6 rounded-full bg-gradient-to-b from-[#54d1ff] to-[#0090c7]" />
+                                    <h2 className="text-xl font-semibold text-[#0090c7]">{day.dayOfWeek}</h2>
                                 </div>
-                            )}
-                        </div>
-                    ))}
+                                {day.items.length === 0 ? (
+                                    <p className="text-gray-500 pl-4">ไม่มีอนิเมะออกอากาศ</p>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                                        {day.items.map((item) => (
+                                            <MediaCard key={`${item.uniqueId}-${item.airingAt}`} {...item} />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                 </>
             )}
 
