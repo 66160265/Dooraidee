@@ -10,6 +10,15 @@ body {
   color: #000;
 }
 
+button:not(:disabled),
+select {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
