@@ -52,76 +52,111 @@ function DetailPage({ mediaType }) {
         fetchProviders();
     }, [mediaType, id, item]);
 
-    if (loading) return <p className="text-center pt-8">กำลังโหลด...</p>;
-    if (!item) return <p className="text-center pt-8">ไม่พบข้อมูล</p>;
+    if (loading) {
+        return (
+            <div className="max-w-[1200px] mx-auto pt-8 pb-16 px-4">
+                <div className="h-9 w-28 bg-gray-100 rounded-full mb-4" />
+                <div className="flex flex-col md:flex-row gap-5 bg-gray-100 rounded-2xl p-5 h-[400px] animate-pulse" />
+            </div>
+        );
+    }
+
+    if (!item) {
+        return (
+            <div className="max-w-[1200px] mx-auto pt-16 pb-16 px-4 text-center">
+                <p className="text-5xl mb-3">😕</p>
+                <p className="text-gray-500 text-lg">ไม่พบข้อมูล</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="max-w-[1200px] mx-auto pt-8 pb-16 px-4">
-            <button
-                onClick={() => navigate(-1)}
-                className="mb-4 bg-[#b1e5ff] text-black px-4 py-1.5 rounded-md hover:scale-[1.02] transition-transform"
-            >
-                &larr; ย้อนกลับ
-            </button>
-
-            <div className="flex flex-col md:flex-row gap-5 bg-[#b1e5ff] rounded-xl p-5">
-                <img
-                    src={item.posterUrl}
-                    alt={item.title}
-                    className="w-full md:w-[250px] h-[350px] object-cover rounded-lg shrink-0"
+        <div className="pb-16">
+            <div className="relative overflow-hidden">
+                <div
+                    className="absolute inset-0 bg-cover bg-center scale-110 blur-2xl opacity-40"
+                    style={{ backgroundImage: `url(${item.posterUrl})` }}
                 />
-                <div className="flex-1">
-                    <h1 className="text-2xl font-bold flex-wrap">{item.title}</h1>
-                    <p className="mt-2 text-lg">{item.description}</p>
-                    <p className="mt-2">⭐ {item.score.toFixed(1)}</p>
+                <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-white/70 to-white" />
 
-                    {item.ageRating && (
-                        <p className="mt-2 inline-block bg-black/70 text-white text-xs px-2.5 py-1 rounded-md">
-                            {item.ageRating}
-                        </p>
-                    )}
+                <div className="relative max-w-[1200px] mx-auto pt-8 px-4">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="mb-4 flex items-center gap-1.5 bg-white/80 backdrop-blur-sm text-black px-4 py-2 rounded-full shadow-sm hover:shadow-md hover:-translate-x-0.5 transition-all"
+                    >
+                        &larr; ย้อนกลับ
+                    </button>
 
-                    {item.genres?.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-3">
-                            {item.genres.map((g) => (
-                                <span key={g} className="bg-[#00aaff] text-black text-sm px-3 py-1 rounded-md">
-                                    {genreLabel(g)}
+                    <div className="flex flex-col md:flex-row gap-6 bg-white/70 backdrop-blur-md rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.08)] animate-fade-in-up">
+                        <img
+                            src={item.posterUrl}
+                            alt={item.title}
+                            className="w-full md:w-[250px] h-[350px] object-cover rounded-2xl shrink-0 shadow-lg"
+                        />
+                        <div className="flex-1">
+                            <h1 className="text-3xl font-bold flex-wrap">{item.title}</h1>
+
+                            <div className="flex flex-wrap items-center gap-2 mt-3">
+                                <span className="flex items-center gap-1 bg-yellow-400/90 text-black text-sm font-semibold px-3 py-1 rounded-full">
+                                    ⭐ {item.score.toFixed(1)}
                                 </span>
-                            ))}
-                        </div>
-                    )}
+                                {item.ageRating && (
+                                    <span className="bg-black/80 text-white text-xs font-medium px-3 py-1 rounded-full">
+                                        {item.ageRating}
+                                    </span>
+                                )}
+                            </div>
 
-                    {item.studio && (
-                        <div className="mt-4">
-                            <p className="text-sm mb-2">ผลิตโดยสตูดิโอ {item.studio}</p>
-                            {item.studioLogoUrl && (
-                                <img
-                                    src={item.studioLogoUrl}
-                                    alt={item.studio}
-                                    className="h-16 w-auto max-w-[200px] object-contain bg-white rounded-lg p-2.5 shadow-[0_0_5px_rgba(0,0,0,0.2)]"
-                                />
+                            <p className="mt-4 text-lg leading-relaxed text-black/80">{item.description}</p>
+
+                            {item.genres?.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-4">
+                                    {item.genres.map((g) => (
+                                        <span key={g} className="bg-[#00aaff] text-black text-sm px-3 py-1 rounded-full">
+                                            {genreLabel(g)}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+
+                            {item.studio && (
+                                <div className="mt-5">
+                                    <p className="text-sm mb-2 text-black/70">ผลิตโดยสตูดิโอ {item.studio}</p>
+                                    {item.studioLogoUrl && (
+                                        <img
+                                            src={item.studioLogoUrl}
+                                            alt={item.studio}
+                                            className="h-16 w-auto max-w-[200px] object-contain bg-white rounded-xl p-2.5 shadow-sm"
+                                        />
+                                    )}
+                                </div>
                             )}
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 
             {watchProviders.platforms.length > 0 && (
-                <div className="mt-6 bg-[#b1e5ff] rounded-xl p-5">
-                    <h2 className="text-xl font-semibold mb-3">ช่องทางการรับชม</h2>
-                    <div className="flex flex-wrap gap-4">
-                        {watchProviders.platforms.map((p, i) => (
-                            <a
-                                key={`${p.name}-${i}`}
-                                href={p.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 hover:scale-105 transition-transform"
-                            >
-                                <PlatformIcon {...p} />
-                                <span className="text-black text-sm">{p.name}</span>
-                            </a>
-                        ))}
+                <div className="max-w-[1200px] mx-auto px-4 mt-6">
+                    <div className="bg-[#b1e5ff] rounded-3xl p-6 shadow-sm">
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="w-1.5 h-6 rounded-full bg-gradient-to-b from-[#54d1ff] to-[#0090c7]" />
+                            <h2 className="text-xl font-semibold">ช่องทางการรับชม</h2>
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                            {watchProviders.platforms.map((p, i) => (
+                                <a
+                                    key={`${p.name}-${i}`}
+                                    href={p.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 bg-white rounded-full pl-2 pr-4 py-2 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
+                                >
+                                    <PlatformIcon {...p} />
+                                    <span className="text-black text-sm font-medium">{p.name}</span>
+                                </a>
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}

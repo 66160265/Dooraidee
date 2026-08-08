@@ -69,16 +69,27 @@ function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = []
     const extraPlatformCount = platforms.length - visiblePlatforms.length;
 
     return (
-        <Link to={`/${ROUTE_MAP[mediaType]}/detail/${originalId}/${slugify(title)}`}>
-            <div className="flex h-[220px] rounded-lg overflow-hidden shadow-[0_0_10px_rgba(0,0,0,0.3)] bg-[#b1e5ff] hover:scale-[1.02] transition-transform">
-                <img src={posterUrl} alt={title} className="w-[150px] h-full object-cover shrink-0" />
+        <Link to={`/${ROUTE_MAP[mediaType]}/detail/${originalId}/${slugify(title)}`} className="group block">
+            <div className="flex h-[220px] rounded-2xl overflow-hidden shadow-md bg-[#b1e5ff] transition-all duration-300 group-hover:shadow-[0_8px_30px_rgba(54,185,233,0.35)] group-hover:-translate-y-1">
+                <div className="relative w-[150px] h-full shrink-0 overflow-hidden">
+                    <img
+                        src={posterUrl}
+                        alt={title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    {!airingAt && !dateLabel && (
+                        <span className="absolute top-2 left-2 flex items-center gap-1 bg-black/60 backdrop-blur-sm text-yellow-300 text-xs font-semibold px-2 py-0.5 rounded-full">
+                            ⭐ {score.toFixed(1)}
+                        </span>
+                    )}
+                </div>
                 <div className="flex-1 min-w-0 p-3 flex flex-col">
-                    <h3 className="font-semibold truncate">{title}</h3>
+                    <h3 className="font-semibold truncate group-hover:text-[#0090c7] transition-colors">{title}</h3>
 
                     {genres.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-2">
                             {genres.slice(0, 3).map((g) => (
-                                <span key={g} className="bg-[#00aaff] text-black text-xs px-2 py-0.5 rounded">
+                                <span key={g} className="bg-[#00aaff] text-black text-xs px-2 py-0.5 rounded-full">
                                     {genreLabel(g)}
                                 </span>
                             ))}
@@ -104,9 +115,7 @@ function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = []
                             </div>
                         ) : dateLabel ? (
                             <span className="flex items-center gap-1 text-xs text-black/70 shrink-0"><CalendarIcon />{dateLabel}</span>
-                        ) : (
-                            <span className="text-yellow-600 text-sm shrink-0">⭐ {score.toFixed(1)}</span>
-                        )}
+                        ) : null}
                     </div>
                     {episode && (
                         <p className="text-xs text-black/60 mt-1">ตอนที่ {episode}</p>

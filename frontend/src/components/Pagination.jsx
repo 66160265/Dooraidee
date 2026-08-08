@@ -35,20 +35,22 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
             <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-3 py-1.5 rounded-lg bg-[#E6F8FE] text-black disabled:opacity-40 hover:bg-[#b1e5ff]"
+                className="px-4 py-2 rounded-full bg-[#E6F8FE] text-black font-medium disabled:opacity-40 hover:bg-[#b1e5ff] transition-colors"
             >
                 ก่อนหน้า
             </button>
 
             {pages.map((p, i) =>
                 p === "..." ? (
-                    <span key={`dots-${i}`} className="px-1 text-gray-500">...</span>
+                    <span key={`dots-${i}`} className="px-1 text-gray-400">···</span>
                 ) : (
                     <button
                         key={p}
                         onClick={() => onPageChange(p)}
-                        className={`min-w-9 px-2 py-1.5 rounded-lg ${
-                            p === currentPage ? "bg-[#36b9e9] text-white" : "bg-[#E6F8FE] text-black hover:bg-[#b1e5ff]"
+                        className={`min-w-10 h-10 px-2 rounded-full font-medium transition-all ${
+                            p === currentPage
+                                ? "bg-gradient-to-br from-[#54d1ff] to-[#0090c7] text-white shadow-[0_4px_14px_rgba(54,185,233,0.5)] scale-105"
+                                : "bg-[#E6F8FE] text-black hover:bg-[#b1e5ff] hover:scale-105"
                         }`}
                     >
                         {p}
@@ -59,7 +61,7 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
             <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1.5 rounded-lg bg-[#E6F8FE] text-black disabled:opacity-40 hover:bg-[#b1e5ff]"
+                className="px-4 py-2 rounded-full bg-[#E6F8FE] text-black font-medium disabled:opacity-40 hover:bg-[#b1e5ff] transition-colors"
             >
                 ถัดไป
             </button>
