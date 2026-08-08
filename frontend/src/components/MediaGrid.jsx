@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import MediaCard from "./MediaCard";
 import MediaCardSkeleton from "./MediaCardSkeleton";
+import Pagination from "./Pagination";
 
 const ENDPOINT_MAP = {
   movie: "movies",
@@ -20,9 +21,8 @@ function buildQuery(page, filters, search) {
 function MediaGrid({ mediaType, searchQuery, filters = {} }) {
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
-  const [hasNextPage, setHasNextPage] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
@@ -32,23 +32,36 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
   }, [searchQuery]);
 
   const filterKey = `${filters.genre || ""}|${filters.year || ""}|${filters.season || ""}|${debouncedSearch}`;
+  const identityKey = `${mediaType}|${filterKey}`;
+  const prevIdentityKeyRef = useRef(identityKey);
 
   useEffect(() => {
-    setItems([]);
-    setPage(1);
+    // Filters/search/category changed — reset to page 1 first. Fetching here
+    // with the old `page` value would send a stale, possibly out-of-range
+    // page against the new query (AniList rejects pages past its own total),
+    // so skip straight to the reset and let the resulting re-render (with
+    // page back at 1) trigger the fetch below instead.
+    if (prevIdentityKeyRef.current !== identityKey) {
+      prevIdentityKeyRef.current = identityKey;
+      if (page !== 1) {
+        setPage(1);
+        return;
+      }
+    }
+
     setLoading(true);
     setError(false);
 
     async function fetchData() {
       try {
-        const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}?${buildQuery(1, filters, debouncedSearch)}`);
+        const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}?${buildQuery(page, filters, debouncedSearch)}`);
         if (!res.ok) {
           setError(true);
           return;
         }
         const data = await res.json();
         setItems(data.results);
-        setHasNextPage(data.hasNextPage);
+        setTotalPages(data.totalPages || 1);
       } catch (err) {
         console.error("Failed to fetch media list:", err);
         setError(true);
@@ -57,23 +70,11 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
       }
     }
     fetchData();
-  }, [mediaType, filterKey]);
+  }, [identityKey, page]);
 
-  async function loadMore() {
-    const nextPage = page + 1;
-    setLoadingMore(true);
-    try {
-      const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}?${buildQuery(nextPage, filters, debouncedSearch)}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      setItems((prev) => [...prev, ...data.results]);
-      setHasNextPage(data.hasNextPage);
-      setPage(nextPage);
-    } catch (err) {
-      console.error("Failed to fetch more media:", err);
-    } finally {
-      setLoadingMore(false);
-    }
+  function handlePageChange(nextPage) {
+    setPage(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   if (loading) {
@@ -101,17 +102,7 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
           <MediaCard key={item.uniqueId} {...item} />
         ))}
       </div>
-      {hasNextPage && (
-        <div className="flex justify-center pb-8">
-          <button
-            onClick={loadMore}
-            disabled={loadingMore}
-            className="px-6 py-2 rounded-lg bg-[#36b9e9] text-white hover:opacity-90 disabled:opacity-50"
-          >
-            {loadingMore ? "กำลังโหลด..." : "โหลดเพิ่ม"}
-          </button>
-        </div>
-      )}
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
     </>
   );
 }

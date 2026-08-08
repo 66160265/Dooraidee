@@ -17,9 +17,13 @@ router.get('/', async (req, res, next) => {
                 genreId: genre ? GENRE_NAME_TO_ID[genre] : undefined,
                 year: year || undefined,
             });
+        // TMDB reports total_pages far beyond what it will actually serve —
+        // page requests above 500 error out regardless of the reported total.
+        const totalPages = Math.min(data.total_pages, 500);
         res.json({
             page: data.page,
-            hasNextPage: data.page < data.total_pages,
+            hasNextPage: data.page < totalPages,
+            totalPages,
             results: data.results.map(normalizeTv),
         });
     } catch (err) {
