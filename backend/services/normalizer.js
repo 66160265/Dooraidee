@@ -41,6 +41,16 @@ function normalizeTv(tvShow) {
     };
 }
 
+function extractStreamingPlatforms(externalLinks) {
+    return (externalLinks || [])
+        .filter((link) => link.type === 'STREAMING')
+        .map((link) => ({
+            name: link.site,
+            logoUrl: link.icon,
+            url: link.url,
+        }));
+}
+
 function normalizeAnime(anime) {
     return {
         uniqueId: `anime-${anime.id}`,
@@ -55,6 +65,7 @@ function normalizeAnime(anime) {
         studio: anime.studios?.nodes?.[0]?.name || null,
         season: anime.season || null,
         seasonYear: anime.seasonYear || null,
+        platforms: extractStreamingPlatforms(anime.externalLinks),
     };
 }
 
@@ -100,15 +111,7 @@ function normalizeWatchProviders(results) {
 }
 
 function normalizeAnimeWatchProviders(externalLinks) {
-    const platforms = (externalLinks || [])
-        .filter((link) => link.type === 'STREAMING')
-        .map((link) => ({
-            name: link.site,
-            logoUrl: link.icon,
-            url: link.url,
-        }));
-
-    return { platforms, link: null };
+    return { platforms: extractStreamingPlatforms(externalLinks), link: null };
 }
 
 module.exports = {

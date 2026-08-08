@@ -100,9 +100,9 @@ function DetailPage({ mediaType }) {
                 <div className="mt-6 bg-[#b1e5ff] rounded-xl p-5">
                     <h2 className="text-xl font-semibold mb-3">ช่องทางการรับชม</h2>
                     <div className="flex flex-wrap gap-4">
-                        {watchProviders.platforms.map((p) => (
+                        {watchProviders.platforms.map((p, i) => (
                             <a
-                                key={p.name}
+                                key={`${p.name}-${i}`}
                                 href={p.url}
                                 target="_blank"
                                 rel="noopener noreferrer"

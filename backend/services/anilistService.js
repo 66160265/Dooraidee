@@ -30,6 +30,12 @@ const MEDIA_FIELDS = `
         name
       }
     }
+    externalLinks {
+      url
+      site
+      type
+      icon
+    }
 `;
 
 const TRENDING_ANIME_QUERY = `

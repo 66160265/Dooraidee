@@ -42,15 +42,20 @@ function ClockIcon() {
     );
 }
 
-function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = [], episode, airingAt }) {
-    const [platforms, setPlatforms] = useState([]);
+function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = [], episode, airingAt, platforms: embeddedPlatforms = [] }) {
+    const [fetchedPlatforms, setFetchedPlatforms] = useState([]);
 
     useEffect(() => {
+        // Anime already carries its platforms from the AniList list/calendar
+        // response (embedded field) — only movie/tv need a per-card fetch
+        // against TMDB's separate watch-providers endpoint.
+        if (mediaType !== "movie" && mediaType !== "tv") return;
+
         async function fetchProviders() {
             try {
                 const res = await fetch(`http://localhost:4000/api/watch-providers/${mediaType}/${originalId}`);
                 const data = await res.json();
-                setPlatforms(data.platforms || []);
+                setFetchedPlatforms(data.platforms || []);
             } catch (err) {
                 console.error("Failed to fetch watch providers:", err);
             }
@@ -58,6 +63,7 @@ function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = []
         fetchProviders();
     }, [mediaType, originalId]);
 
+    const platforms = mediaType === "anime" ? embeddedPlatforms : fetchedPlatforms;
     const visiblePlatforms = platforms.slice(0, 3);
     const extraPlatformCount = platforms.length - visiblePlatforms.length;
 
@@ -80,8 +86,8 @@ function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = []
 
                     <div className="mt-auto pt-2 border-t border-black/15 flex justify-between items-center">
                         <div className="flex items-center gap-1.5">
-                            {visiblePlatforms.map((p) => (
-                                <img key={p.name} src={p.logoUrl} alt={p.name} title={p.name} className="w-6 h-6 rounded" />
+                            {visiblePlatforms.map((p, i) => (
+                                <img key={`${p.name}-${i}`} src={p.logoUrl} alt={p.name} title={p.name} className="w-6 h-6 rounded" />
                             ))}
                             {extraPlatformCount > 0 && (
                                 <span className="w-6 h-6 rounded-full bg-[#36b9e9] text-white text-xs flex items-center justify-center">

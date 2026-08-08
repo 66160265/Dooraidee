@@ -23,6 +23,7 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
   useEffect(() => {
@@ -36,15 +37,21 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
     setItems([]);
     setPage(1);
     setLoading(true);
+    setError(false);
 
     async function fetchData() {
       try {
         const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}?${buildQuery(1, filters, debouncedSearch)}`);
+        if (!res.ok) {
+          setError(true);
+          return;
+        }
         const data = await res.json();
         setItems(data.results);
         setHasNextPage(data.hasNextPage);
       } catch (err) {
         console.error("Failed to fetch media list:", err);
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -57,6 +64,7 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
     setLoadingMore(true);
     try {
       const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}?${buildQuery(nextPage, filters, debouncedSearch)}`);
+      if (!res.ok) return;
       const data = await res.json();
       setItems((prev) => [...prev, ...data.results]);
       setHasNextPage(data.hasNextPage);
@@ -76,6 +84,10 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
         ))}
       </div>
     );
+  }
+
+  if (error) {
+    return <p className="text-gray-500 px-4">เกิดข้อผิดพลาด โปรดลองใหม่อีกครั้งในภายหลัง</p>;
   }
 
   if (items.length === 0) {
