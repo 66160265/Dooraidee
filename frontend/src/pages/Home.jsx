@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AiringTodayCarousel from "../components/AiringTodayCarousel";
 import AiringTodayCardSkeleton from "../components/AiringTodayCardSkeleton";
+import { API_BASE_URL } from "../config";
 
 function Home() {
     const [items, setItems] = useState([]);
@@ -10,7 +11,7 @@ function Home() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const res = await fetch("http://localhost:4000/api/anime-calendar/today");
+                const res = await fetch(`${API_BASE_URL}/api/anime-calendar/today`);
                 if (!res.ok) return;
                 const data = await res.json();
                 setItems(data.results || []);

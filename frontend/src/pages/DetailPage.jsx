@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { genreLabel } from "../utils/genreLabels";
 import PlatformIcon from "../components/PlatformIcon";
+import { API_BASE_URL } from "../config";
 
 const ENDPOINT_MAP = {
     movie: "movies",
@@ -20,7 +21,7 @@ function DetailPage({ mediaType }) {
         async function fetchData() {
             setLoading(true);
             try {
-                const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}/${id}`);
+                const res = await fetch(`${API_BASE_URL}/api/${ENDPOINT_MAP[mediaType]}/${id}`);
                 if (!res.ok) {
                     setItem(null);
                     return;
@@ -41,7 +42,7 @@ function DetailPage({ mediaType }) {
 
         async function fetchProviders() {
             try {
-                const res = await fetch(`http://localhost:4000/api/watch-providers/${mediaType}/${id}?title=${encodeURIComponent(item.title)}`);
+                const res = await fetch(`${API_BASE_URL}/api/watch-providers/${mediaType}/${id}?title=${encodeURIComponent(item.title)}`);
                 if (!res.ok) return;
                 const data = await res.json();
                 setWatchProviders(data);

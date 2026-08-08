@@ -4,6 +4,7 @@ import MediaCard from "../components/MediaCard";
 import MediaCardSkeleton from "../components/MediaCardSkeleton";
 import Countdown from "../components/Countdown";
 import slugify from "../utils/slugify";
+import { API_BASE_URL } from "../config";
 
 const TABS = [
     { key: "movie", label: "หนัง" },
@@ -85,9 +86,9 @@ function AnimeCalendar() {
 
         async function fetchData() {
             const [animeData, moviesData, tvData] = await Promise.all([
-                fetchJson("http://localhost:4000/api/anime-calendar"),
-                fetchJson("http://localhost:4000/api/release-calendar/movies"),
-                fetchJson("http://localhost:4000/api/release-calendar/tv-shows"),
+                fetchJson(`${API_BASE_URL}/api/anime-calendar`),
+                fetchJson(`${API_BASE_URL}/api/release-calendar/movies`),
+                fetchJson(`${API_BASE_URL}/api/release-calendar/tv-shows`),
             ]);
 
             setDays(animeData?.days || []);
