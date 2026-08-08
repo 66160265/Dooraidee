@@ -75,6 +75,7 @@ function normalizeAnime(anime) {
     return {
         uniqueId: `anime-${anime.id}`,
         originalId: anime.id,
+        idMal: anime.idMal || null,
         mediaType: 'anime',
         title: anime.title.english || anime.title.romaji,
         description: anime.description,
@@ -87,6 +88,19 @@ function normalizeAnime(anime) {
         seasonYear: anime.seasonYear || null,
         platforms: extractStreamingPlatforms(anime.externalLinks),
     };
+}
+
+const MAL_RATING_LABELS_TH = {
+    g: 'เหมาะสำหรับทุกวัย',
+    pg: 'เด็กควรมีผู้ปกครองแนะนำ',
+    pg_13: 'เหมาะสำหรับอายุ 13 ปีขึ้นไป',
+    r: 'เหมาะสำหรับอายุ 17 ปีขึ้นไป (มีความรุนแรง)',
+    'r+': 'เหมาะสำหรับอายุ 17 ปีขึ้นไป (มีภาพโป๊เปลือย)',
+    rx: 'สำหรับผู้ใหญ่เท่านั้น',
+};
+
+function ageRatingLabel(rating) {
+    return MAL_RATING_LABELS_TH[rating] || null;
 }
 
 function isAdultAnime(anime) {
@@ -142,5 +156,6 @@ module.exports = {
     normalizeAnimeWatchProviders,
     isAdultAnime,
     isAdultTmdb,
+    ageRatingLabel,
     TMDB_GENRE_MAP,
 };
