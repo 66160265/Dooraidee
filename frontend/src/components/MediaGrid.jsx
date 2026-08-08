@@ -88,18 +88,30 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
   }
 
   if (error) {
-    return <p className="text-gray-500 px-4">เกิดข้อผิดพลาด โปรดลองใหม่อีกครั้งในภายหลัง</p>;
+    return (
+      <div className="max-w-[1400px] mx-auto px-4 py-16 text-center">
+        <p className="text-5xl mb-3">⚠️</p>
+        <p className="text-gray-500 text-lg">เกิดข้อผิดพลาด โปรดลองใหม่อีกครั้งในภายหลัง</p>
+      </div>
+    );
   }
 
   if (items.length === 0) {
-    return <p className="text-gray-500 px-4">ไม่พบรายการที่ตรงกับเงื่อนไข</p>;
+    return (
+      <div className="max-w-[1400px] mx-auto px-4 py-16 text-center">
+        <p className="text-5xl mb-3">🔍</p>
+        <p className="text-gray-500 text-lg">ไม่พบรายการที่ตรงกับเงื่อนไข</p>
+      </div>
+    );
   }
 
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 max-w-[1400px] mx-auto">
-        {items.map((item) => (
-          <MediaCard key={item.uniqueId} {...item} />
+        {items.map((item, i) => (
+          <div key={item.uniqueId} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(i, 10) * 40}ms` }}>
+            <MediaCard {...item} />
+          </div>
         ))}
       </div>
       <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />

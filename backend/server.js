@@ -28,6 +28,14 @@ app.use((err, req, res, next) => {
     res.status(status).json({ error: err.message || 'Internal Server Error' });
 });
 
-app.listen(config.port, () => {
+const server = app.listen(config.port, () => {
     console.log(`Server running on http://localhost:${config.port}`);
 });
+
+// Ensure Ctrl+C actually terminates the process instead of leaving node.exe
+// orphaned in the background.
+function shutdown() {
+    server.close(() => process.exit(0));
+}
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);

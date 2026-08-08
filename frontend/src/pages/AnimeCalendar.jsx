@@ -24,17 +24,21 @@ function HeroCountdown({ item }) {
     return (
         <Link
             to={`/anime/detail/${item.originalId}/${slugify(item.title)}`}
-            className="block relative rounded-2xl overflow-hidden mb-10 h-[280px] bg-[#36b9e9]"
+            className="group block relative rounded-3xl overflow-hidden mb-10 h-[300px] bg-gradient-to-br from-[#54d1ff] via-[#36b9e9] to-[#0090c7] shadow-[0_10px_40px_rgba(54,185,233,0.35)]"
         >
             <img
                 src={item.posterUrl}
                 alt=""
-                className="absolute inset-0 w-full h-full object-cover opacity-25"
+                className="absolute inset-0 w-full h-full object-cover opacity-25 transition-transform duration-700 group-hover:scale-110"
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+            <div className="pointer-events-none absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/10 blur-2xl" />
+
             <div className="relative z-10 h-full flex flex-col items-center justify-center text-white text-center px-4">
-                <h2 className="text-2xl md:text-3xl font-bold">{item.title}</h2>
+                <span className="text-xs uppercase tracking-widest text-white/70 mb-2">ออกอากาศเร็วที่สุด</span>
+                <h2 className="text-2xl md:text-3xl font-bold drop-shadow-sm">{item.title}</h2>
                 <p className="mt-1 text-white/90">ตอนที่ {item.episode}</p>
-                <div className="mt-4">
+                <div className="mt-5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-6 py-3">
                     <Countdown targetTimestamp={item.airingAt} />
                 </div>
             </div>
@@ -49,8 +53,10 @@ function ReleaseGrid({ items, dateField }) {
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {items.map((item) => (
-                <MediaCard key={item.uniqueId} {...item} dateLabel={formatShortThaiDate(item[dateField])} />
+            {items.map((item, i) => (
+                <div key={item.uniqueId} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(i, 10) * 40}ms` }}>
+                    <MediaCard {...item} dateLabel={formatShortThaiDate(item[dateField])} />
+                </div>
             ))}
         </div>
     );
@@ -100,15 +106,15 @@ function AnimeCalendar() {
         <div className="max-w-[1400px] mx-auto px-4 pt-8 pb-8">
             {activeTab === "anime" && <HeroCountdown item={soonest} />}
 
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2 mb-6 bg-[#E6F8FE] p-1.5 rounded-full w-fit shadow-inner">
                 {TABS.map((tab) => (
                     <button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
-                        className={`px-5 py-2 rounded-lg font-medium transition-colors ${
+                        className={`px-5 py-2 rounded-full font-medium transition-all ${
                             activeTab === tab.key
-                                ? "bg-[#36b9e9] text-white"
-                                : "bg-[#E6F8FE] text-black hover:bg-[#b1e5ff]"
+                                ? "bg-gradient-to-br from-[#54d1ff] to-[#0090c7] text-white shadow-[0_4px_14px_rgba(54,185,233,0.4)]"
+                                : "text-black/70 hover:bg-white/60"
                         }`}
                     >
                         {tab.label}
@@ -121,9 +127,12 @@ function AnimeCalendar() {
                     <h1 className="text-3xl font-bold mb-6">ปฏิทินออกอากาศอนิเมะ</h1>
                     {days.map((day) => (
                         <div key={day.dayOfWeek} className="mb-10">
-                            <h2 className="text-xl font-semibold mb-3 text-[#0090c7]">{day.dayOfWeek}</h2>
+                            <div className="flex items-center gap-3 mb-3">
+                                <span className="w-1.5 h-6 rounded-full bg-gradient-to-b from-[#54d1ff] to-[#0090c7]" />
+                                <h2 className="text-xl font-semibold text-[#0090c7]">{day.dayOfWeek}</h2>
+                            </div>
                             {day.items.length === 0 ? (
-                                <p className="text-gray-500">ไม่มีอนิเมะออกอากาศ</p>
+                                <p className="text-gray-500 pl-4">ไม่มีอนิเมะออกอากาศ</p>
                             ) : (
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                     {day.items.map((item) => (
@@ -138,14 +147,14 @@ function AnimeCalendar() {
 
             {activeTab === "movie" && (
                 <>
-                    <h1 className="text-3xl font-bold mb-6">หนังเข้าฉายเร็วๆ นี้</h1>
+                    <h1 className="text-3xl font-bold mb-6 animate-fade-in-up">หนังเข้าฉายเร็วๆ นี้</h1>
                     <ReleaseGrid items={movies} dateField="releaseDate" />
                 </>
             )}
 
             {activeTab === "tv" && (
                 <>
-                    <h1 className="text-3xl font-bold mb-6">ซีรีส์ตอนใหม่</h1>
+                    <h1 className="text-3xl font-bold mb-6 animate-fade-in-up">ซีรีส์ตอนใหม่</h1>
                     <ReleaseGrid items={tvShows} dateField="nextEpisodeDate" />
                 </>
             )}

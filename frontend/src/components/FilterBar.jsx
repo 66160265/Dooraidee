@@ -22,7 +22,7 @@ const SEASONS = [
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 15 }, (_, i) => CURRENT_YEAR + 1 - i);
 
-const SELECT_CLASS = "bg-white text-black border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#36b9e9]";
+const SELECT_CLASS = "bg-white text-black border border-gray-200 shadow-sm rounded-full px-4 py-2 cursor-pointer transition-all hover:border-[#36b9e9] focus:outline-none focus:border-[#36b9e9] focus:shadow-[0_0_0_4px_rgba(54,185,233,0.15)]";
 
 function FilterBar({ mediaType, filters, onChange }) {
     const genreOptions = mediaType === "anime" ? ANIME_GENRES : MOVIE_TV_GENRES;
