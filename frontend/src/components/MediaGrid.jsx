@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import MediaCard from "./MediaCard";
 import MediaCardSkeleton from "./MediaCardSkeleton";
 import Pagination from "./Pagination";
+import { API_BASE_URL } from "../config";
 
 const ENDPOINT_MAP = {
   movie: "movies",
@@ -54,7 +55,7 @@ function MediaGrid({ mediaType, searchQuery, filters = {} }) {
 
     async function fetchData() {
       try {
-        const res = await fetch(`http://localhost:4000/api/${ENDPOINT_MAP[mediaType]}?${buildQuery(page, filters, debouncedSearch)}`);
+        const res = await fetch(`${API_BASE_URL}/api/${ENDPOINT_MAP[mediaType]}?${buildQuery(page, filters, debouncedSearch)}`);
         if (!res.ok) {
           setError(true);
           return;

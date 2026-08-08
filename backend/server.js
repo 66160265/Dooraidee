@@ -10,7 +10,12 @@ const animeRouter = require('./routes/anime');
 const app = express();
 const cors = require('cors');
 
-app.use(cors());
+// FRONTEND_URL restricts CORS to the deployed frontend's origin(s) in
+// production (comma-separated if there's more than one, e.g. a Vercel
+// preview + production URL). Left unset, CORS stays open — fine for local
+// dev and for this read-only public API with no auth/cookies to protect.
+const allowedOrigins = process.env.FRONTEND_URL?.split(',').map((s) => s.trim());
+app.use(cors(allowedOrigins ? { origin: allowedOrigins } : {}));
 
 app.use('/api/trending', trendingRouter);
 app.use('/api/watch-providers', watchProvidersRouter);

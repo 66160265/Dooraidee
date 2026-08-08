@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import slugify from '../utils/slugify';
 import { genreLabel } from '../utils/genreLabels';
 import PlatformIcon from './PlatformIcon';
+import { API_BASE_URL } from '../config';
 
 const ROUTE_MAP = {
     movie: "movies",
@@ -54,7 +55,7 @@ function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = []
 
         async function fetchProviders() {
             try {
-                const res = await fetch(`http://localhost:4000/api/watch-providers/${mediaType}/${originalId}?title=${encodeURIComponent(title)}`);
+                const res = await fetch(`${API_BASE_URL}/api/watch-providers/${mediaType}/${originalId}?title=${encodeURIComponent(title)}`);
                 const data = await res.json();
                 setFetchedPlatforms(data.platforms || []);
             } catch (err) {
