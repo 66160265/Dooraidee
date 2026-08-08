@@ -8,19 +8,24 @@ const anilistClient = axios.create({
 
 const RETRYABLE_ERROR_CODES = new Set(["ECONNRESET", "ETIMEDOUT", "ECONNABORTED", "EAI_AGAIN"]);
 
-// AniList's connection occasionally drops mid-request (ECONNRESET) under load;
-// retry once after a short delay before giving up.
+function retryDelayMs(err) {
+  if (err.response?.status === 429) return 1500; // rate-limited — back off longer
+  if (RETRYABLE_ERROR_CODES.has(err.code)) return 500; // dropped connection — brief retry
+  return null;
+}
+
+// AniList's connection occasionally drops mid-request (ECONNRESET) under load,
+// and bursts of requests can get rate-limited (429); retry once before giving up.
 async function postGraphQL(query, variables) {
   try {
     const { data } = await anilistClient.post("", { query, variables });
     return data.data;
   } catch (err) {
-    if (RETRYABLE_ERROR_CODES.has(err.code)) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const { data } = await anilistClient.post("", { query, variables });
-      return data.data;
-    }
-    throw err;
+    const delay = retryDelayMs(err);
+    if (delay === null) throw err;
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    const { data } = await anilistClient.post("", { query, variables });
+    return data.data;
   }
 }
 
@@ -69,14 +74,23 @@ const TRENDING_ANIME_QUERY = `
     }
 `;
 
-const AIRING_SCHEDULE_QUERY = `
-    query ($start: Int, $end: Int) {
-        Page(page: 1, perPage: 50) {
-            airingSchedules(airingAt_greater: $start, airingAt_lesser: $end, sort: TIME) {
-                airingAt
-                episode
-                media {
-                    ${MEDIA_FIELDS}
+// Querying airingSchedules directly returns every episode airing in the
+// window (thousands, mostly obscure), and a single page's worth gets
+// exhausted by whichever days sort first — leaving other days empty. Instead
+// we page through currently-releasing anime sorted by popularity and read
+// each show's own nextAiringEpisode, which naturally spreads across whatever
+// day it actually airs and stays limited to shows worth showing.
+const ANIME_RELEASING_QUERY = `
+    query ($page: Int, $perPage: Int) {
+        Page(page: $page, perPage: $perPage) {
+            pageInfo {
+                hasNextPage
+            }
+            media(type: ANIME, status: RELEASING, sort: POPULARITY_DESC, isAdult: false) {
+                ${MEDIA_FIELDS}
+                nextAiringEpisode {
+                    airingAt
+                    episode
                 }
             }
         }
@@ -123,9 +137,18 @@ async function getTrendingAnime() {
   return data.Page.media;
 }
 
-async function getAiringSchedule(start, end) {
-  const data = await postGraphQL(AIRING_SCHEDULE_QUERY, { start, end });
-  return data.Page.airingSchedules;
+async function getReleasingAnimePage(page, perPage) {
+  const data = await postGraphQL(ANIME_RELEASING_QUERY, { page, perPage });
+  return data.Page;
+}
+
+// Fetches several pages of popular currently-releasing anime and merges
+// them, capped so a calendar load never fires an unbounded number of
+// requests at AniList.
+async function getReleasingAnime(maxPages = 4, perPage = 50) {
+  const pageNumbers = Array.from({ length: maxPages }, (_, i) => i + 1);
+  const results = await Promise.all(pageNumbers.map((page) => getReleasingAnimePage(page, perPage)));
+  return results.flatMap((result) => result.media);
 }
 
 async function getAnimeList(page, perPage, filters = {}) {
@@ -146,7 +169,7 @@ async function getAnimeExternalLinks(id) {
 
 module.exports = {
   getTrendingAnime,
-  getAiringSchedule,
+  getReleasingAnime,
   getAnimeList,
   getAnimeById,
   getAnimeExternalLinks,

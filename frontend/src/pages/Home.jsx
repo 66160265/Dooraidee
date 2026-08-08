@@ -10,8 +10,9 @@ function Home() {
         async function fetchData() {
             try {
                 const res = await fetch("http://localhost:4000/api/anime-calendar/today");
+                if (!res.ok) return;
                 const data = await res.json();
-                setItems(data.results);
+                setItems(data.results || []);
             } catch (err) {
                 console.error("Failed to fetch today's airing anime:", err);
             } finally {
