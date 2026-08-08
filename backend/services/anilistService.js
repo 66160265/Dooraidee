@@ -3,7 +3,26 @@ const axios = require("axios");
 const anilistClient = axios.create({
   baseURL: "https://graphql.anilist.co",
   headers: { "Content-Type": "application/json" },
+  timeout: 10000,
 });
+
+const RETRYABLE_ERROR_CODES = new Set(["ECONNRESET", "ETIMEDOUT", "ECONNABORTED", "EAI_AGAIN"]);
+
+// AniList's connection occasionally drops mid-request (ECONNRESET) under load;
+// retry once after a short delay before giving up.
+async function postGraphQL(query, variables) {
+  try {
+    const { data } = await anilistClient.post("", { query, variables });
+    return data.data;
+  } catch (err) {
+    if (RETRYABLE_ERROR_CODES.has(err.code)) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const { data } = await anilistClient.post("", { query, variables });
+      return data.data;
+    }
+    throw err;
+  }
+}
 
 const MEDIA_FIELDS = `
     id
@@ -100,43 +119,29 @@ const ANIME_EXTERNAL_LINKS_QUERY = `
 `;
 
 async function getTrendingAnime() {
-  const { data } = await anilistClient.post("", {
-    query: TRENDING_ANIME_QUERY,
-  });
-  return data.data.Page.media;
+  const data = await postGraphQL(TRENDING_ANIME_QUERY);
+  return data.Page.media;
 }
 
 async function getAiringSchedule(start, end) {
-  const { data } = await anilistClient.post("", {
-    query: AIRING_SCHEDULE_QUERY,
-    variables: { start, end },
-  });
-  return data.data.Page.airingSchedules;
+  const data = await postGraphQL(AIRING_SCHEDULE_QUERY, { start, end });
+  return data.Page.airingSchedules;
 }
 
 async function getAnimeList(page, perPage, filters = {}) {
   const { genre, season, seasonYear, search } = filters;
-  const { data } = await anilistClient.post("", {
-    query: ANIME_LIST_QUERY,
-    variables: { page, perPage, genre, season, seasonYear, search },
-  });
-  return data.data.Page;
+  const data = await postGraphQL(ANIME_LIST_QUERY, { page, perPage, genre, season, seasonYear, search });
+  return data.Page;
 }
 
 async function getAnimeById(id) {
-  const { data } = await anilistClient.post("", {
-    query: ANIME_BY_ID_QUERY,
-    variables: { id },
-  });
-  return data.data.Media;
+  const data = await postGraphQL(ANIME_BY_ID_QUERY, { id });
+  return data.Media;
 }
 
 async function getAnimeExternalLinks(id) {
-  const { data } = await anilistClient.post("", {
-    query: ANIME_EXTERNAL_LINKS_QUERY,
-    variables: { id },
-  });
-  return data.data.Media.externalLinks;
+  const data = await postGraphQL(ANIME_EXTERNAL_LINKS_QUERY, { id });
+  return data.Media.externalLinks;
 }
 
 module.exports = {

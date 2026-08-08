@@ -56,19 +56,96 @@ const TH_AVAILABLE_SITES = new Set([
     'crunchyroll',
 ]);
 
+// Real full-color logos sourced from TMDB's watch-provider database —
+// more accurate than AniList's flat icon+color composite. Platforms not
+// listed here (TrueID, Bilibili) fall back to the AniList icon+color.
+const TMDB_PROVIDER_LOGOS = {
+    netflix: '/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg',
+    'amazon prime video': '/pvske1MyAoymrs5bguRfVqYiM9a.jpg',
+    'prime video': '/pvske1MyAoymrs5bguRfVqYiM9a.jpg',
+    'disney plus': '/tHtNW975SmVydaBULhEaOqPTmo8.jpg',
+    'disney+': '/tHtNW975SmVydaBULhEaOqPTmo8.jpg',
+    viu: '/o7WsYI2r1llIf9h6JTGVX9yTHPx.jpg',
+    crunchyroll: '/fzN5Jok5Ig1eJ7gyNGoMhnLSCfh.jpg',
+    iq: '/c4eVkfMna2VzHzZ8N2vWXUnMrlD.jpg',
+    iqiyi: '/c4eVkfMna2VzHzZ8N2vWXUnMrlD.jpg',
+    wetv: '/r3tmJFjecQGAfHjWOafhr1pux6b.jpg',
+};
+
+// Known official anime-distribution YouTube channel handles -> display name.
+const KNOWN_YOUTUBE_CHANNELS = {
+    museasia: 'Muse Asia',
+    musethailand: 'Muse Thailand',
+    museindonesia: 'Muse Indonesia',
+    musemalaysia: 'Muse Malaysia',
+    musevietnam: 'Muse Vietnam',
+    musephilippines: 'Muse Philippines',
+    museindia: 'Muse India',
+    anioneasia: 'Ani-One Asia',
+    netflixanime: 'Netflix Anime',
+    crunchyrollcollection: 'Crunchyroll Collection',
+};
+
 function normalizeSiteName(name) {
     return (name || '').toLowerCase().trim();
 }
 
+function formatYoutubeHandle(handle) {
+    const key = handle.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (KNOWN_YOUTUBE_CHANNELS[key]) return KNOWN_YOUTUBE_CHANNELS[key];
+    return handle
+        .replace(/[_-]+/g, ' ')
+        .trim()
+        .split(' ')
+        .filter(Boolean)
+        .map((w) => w[0].toUpperCase() + w.slice(1))
+        .join(' ');
+}
+
+function extractYoutubeChannelName(url) {
+    const match = (url || '').match(/youtube\.com\/@([^/?&]+)/i);
+    if (!match) return null; // playlist/channel-id links carry no readable name
+    const handle = decodeURIComponent(match[1]);
+    if (!/[a-zA-Z]/.test(handle)) return null; // non-Latin handles aren't useful display names
+    return formatYoutubeHandle(handle);
+}
+
+function resolvePlatformLogo(link) {
+    const key = normalizeSiteName(link.site);
+    if (TMDB_PROVIDER_LOGOS[key]) {
+        return { logoUrl: `https://image.tmdb.org/t/p/w92${TMDB_PROVIDER_LOGOS[key]}`, color: null };
+    }
+    return { logoUrl: link.icon, color: link.color || null };
+}
+
 function extractStreamingPlatforms(externalLinks) {
-    return (externalLinks || [])
-        .filter((link) => link.type === 'STREAMING' && TH_AVAILABLE_SITES.has(normalizeSiteName(link.site)))
-        .map((link) => ({
-            name: link.site,
-            logoUrl: link.icon,
+    const seen = new Set();
+    const platforms = [];
+
+    for (const link of externalLinks || []) {
+        if (link.type !== 'STREAMING') continue;
+        const siteKey = normalizeSiteName(link.site);
+        if (!TH_AVAILABLE_SITES.has(siteKey)) continue;
+
+        let name = link.site;
+        if (siteKey === 'youtube') {
+            const channelName = extractYoutubeChannelName(link.url);
+            if (!channelName) continue; // skip links with no resolvable channel name
+            name = channelName;
+        }
+
+        const dedupeKey = name.toLowerCase();
+        if (seen.has(dedupeKey)) continue;
+        seen.add(dedupeKey);
+
+        platforms.push({
+            name,
             url: link.url,
-            color: link.color || null,
-        }));
+            ...resolvePlatformLogo(link),
+        });
+    }
+
+    return platforms;
 }
 
 function normalizeAnime(anime) {
