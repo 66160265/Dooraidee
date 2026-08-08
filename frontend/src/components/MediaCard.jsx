@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import slugify from '../utils/slugify';
 import { genreLabel } from '../utils/genreLabels';
 import PlatformIcon from './PlatformIcon';
@@ -10,6 +10,12 @@ const ROUTE_MAP = {
     tv: "tv-shows",
     anime: "anime",
 };
+
+// Fixed size of one platform icon slot (24px icon + 6px gap) and the "+N"
+// badge, used to work out from the container's measured width how many
+// icons actually fit before falling back to a count badge.
+const PLATFORM_ICON_SLOT_PX = 30;
+const PLATFORM_BADGE_SLOT_PX = 30;
 
 function formatAiringDay(airingAt) {
     return new Date(airingAt * 1000).toLocaleDateString("th-TH", {
@@ -66,7 +72,34 @@ function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = []
     }, [mediaType, originalId, title]);
 
     const platforms = mediaType === "anime" ? embeddedPlatforms : fetchedPlatforms;
-    const visiblePlatforms = platforms.slice(0, 3);
+
+    // Fit as many platform icons as the row has room for, only falling back
+    // to a "+N" count once they genuinely don't fit — rather than a fixed
+    // cap regardless of how much space is actually available.
+    const platformsRef = useRef(null);
+    const [maxVisiblePlatforms, setMaxVisiblePlatforms] = useState(platforms.length);
+
+    useEffect(() => {
+        const el = platformsRef.current;
+        if (!el) return;
+
+        function recalc() {
+            const width = el.offsetWidth;
+            if (Math.floor(width / PLATFORM_ICON_SLOT_PX) >= platforms.length) {
+                setMaxVisiblePlatforms(platforms.length);
+                return;
+            }
+            const availableForIcons = Math.max(width - PLATFORM_BADGE_SLOT_PX, 0);
+            setMaxVisiblePlatforms(Math.max(Math.floor(availableForIcons / PLATFORM_ICON_SLOT_PX), 0));
+        }
+
+        recalc();
+        const observer = new ResizeObserver(recalc);
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [platforms.length]);
+
+    const visiblePlatforms = platforms.slice(0, maxVisiblePlatforms);
     const extraPlatformCount = platforms.length - visiblePlatforms.length;
 
     return (
@@ -88,8 +121,8 @@ function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = []
                     <h3 className="font-semibold truncate group-hover:text-[#0090c7] transition-colors">{title}</h3>
 
                     {genres.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                            {genres.slice(0, 3).map((g) => (
+                        <div className="flex flex-wrap gap-1.5 mt-2 overflow-hidden">
+                            {genres.map((g) => (
                                 <span key={g} className="bg-[#00aaff] text-black text-xs px-2 py-0.5 rounded-full">
                                     {genreLabel(g)}
                                 </span>
@@ -98,12 +131,12 @@ function MediaCard({ title, posterUrl, score, mediaType, originalId, genres = []
                     )}
 
                     <div className="mt-auto pt-2 border-t border-black/15 flex justify-between items-center">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden" ref={platformsRef}>
                             {visiblePlatforms.map((p, i) => (
                                 <PlatformIcon key={`${p.name}-${i}`} {...p} />
                             ))}
                             {extraPlatformCount > 0 && (
-                                <span className="w-6 h-6 rounded-full bg-[#36b9e9] text-white text-xs flex items-center justify-center">
+                                <span className="w-6 h-6 rounded-full bg-[#36b9e9] text-white text-xs flex items-center justify-center shrink-0">
                                     +{extraPlatformCount}
                                 </span>
                             )}
