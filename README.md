@@ -35,8 +35,6 @@ frontend/
   src/pages/       หน้าเว็บตาม route (Home, Movies, TvShows, Anime, DetailPage, AnimeCalendar)
   src/components/  UI ที่ใช้ซ้ำได้ (MediaCard, MediaGrid, Pagination, FilterBar, ...)
   src/utils/       ฟังก์ชันช่วยเล็กๆ (slugify, ป้ายชื่อแนวภาษาไทย)
-docs/
-  CODE_GUIDE.md    คู่มืออ่านโค้ดสำหรับมือใหม่
 ```
 
 ## เริ่มต้นใช้งาน
