@@ -29,13 +29,15 @@ function retryDelayMs(err, attempt) {
 }
 
 // AniList's public rate limit is tight (reports put it around 30
-// requests/minute — roughly one every 2s). Space outbound requests apart
-// globally at that rate so a burst (calendar's 4 parallel page fetches, a
-// totalPages binary search's ~8 probes, several distinct fresh filters at
-// once) gets serialized with gaps instead of firing all at once — cheaper
-// than reacting to 429s after the fact. Caching (below) means this only
-// ever matters for genuinely new, uncached requests.
-const MIN_REQUEST_INTERVAL_MS = 2000;
+// requests/minute). Space outbound requests apart globally so a burst
+// (calendar's 4 parallel page fetches, a totalPages binary search's ~8
+// probes, several distinct fresh filters at once) gets serialized with gaps
+// instead of firing all at once. Kept well under the full 2s/request that
+// would strictly guarantee the limit — a cold totalPages search at that
+// pace takes 20-50s, slow enough to feel broken — and instead leans on
+// findTotalPages' own fallback (routes/anime.js) to absorb the occasional
+// 429 that slips through by estimating instead of failing the request.
+const MIN_REQUEST_INTERVAL_MS = 700;
 let nextAvailableAt = 0;
 
 async function throttleGate() {
@@ -184,13 +186,16 @@ const ANIME_RELEASING_QUERY = `
     }
 `;
 
+// status_not: NOT_YET_RELEASED excludes anime that hasn't started airing —
+// browsing/searching should only surface things you can actually watch, not
+// announced-but-unreleased titles.
 const ANIME_LIST_QUERY = `
     query ($page: Int, $perPage: Int, $genre: String, $season: MediaSeason, $seasonYear: Int, $search: String) {
         Page(page: $page, perPage: $perPage) {
             pageInfo {
                 hasNextPage
             }
-            media(type: ANIME, sort: POPULARITY_DESC, genre: $genre, season: $season, seasonYear: $seasonYear, isAdult: false, search: $search) {
+            media(type: ANIME, sort: POPULARITY_DESC, genre: $genre, season: $season, seasonYear: $seasonYear, isAdult: false, search: $search, status_not: NOT_YET_RELEASED) {
                 ${MEDIA_FIELDS}
             }
         }
@@ -211,7 +216,7 @@ const ANIME_BY_ID_QUERY = `
 const ANIME_BY_MAL_IDS_QUERY = `
     query ($ids: [Int]) {
         Page(page: 1, perPage: 25) {
-            media(type: ANIME, idMal_in: $ids, isAdult: false) {
+            media(type: ANIME, idMal_in: $ids, isAdult: false, status_not: NOT_YET_RELEASED) {
                 ${MEDIA_FIELDS}
             }
         }
