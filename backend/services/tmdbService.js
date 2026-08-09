@@ -13,6 +13,13 @@ const tmdbClient = axios.create({
 // doesn't catch these, so exclude them explicitly via without_keywords.
 const EXCLUDED_KEYWORDS = '198385,256466'; // hentai, erotic
 
+// Browsing should only surface things that have actually started releasing,
+// not announced-but-unreleased titles — TMDB's discover endpoints accept an
+// upper bound on release/air date to filter those out server-side.
+function todayIso() {
+    return new Date().toISOString().slice(0, 10);
+}
+
 async function getTrendingMovies() {
     const { data } = await tmdbClient.get('/trending/movie/day');
     return data.results;
@@ -34,6 +41,7 @@ async function getDiscoverMovies(page, filters = {}) {
             page,
             with_genres: filters.genreId,
             primary_release_year: filters.year,
+            'primary_release_date.lte': todayIso(),
             include_adult: false,
             without_keywords: EXCLUDED_KEYWORDS,
         },
@@ -47,6 +55,7 @@ async function getDiscoverTvShows(page, filters = {}) {
             page,
             with_genres: filters.genreId,
             first_air_date_year: filters.year,
+            'first_air_date.lte': todayIso(),
             include_adult: false,
             without_keywords: EXCLUDED_KEYWORDS,
         },

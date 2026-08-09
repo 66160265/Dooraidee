@@ -39,7 +39,7 @@ const SEASONS = [
 ];
 
 const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: 15 }, (_, i) => CURRENT_YEAR + 1 - i);
+const YEARS = Array.from({ length: 15 }, (_, i) => CURRENT_YEAR - i);
 
 function ChevronDownIcon({ open }) {
     return (
