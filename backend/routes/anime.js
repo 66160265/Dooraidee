@@ -111,7 +111,19 @@ router.get('/', async (req, res, next) => {
             data = await searchByNativeTitleFallback(filters.search, page);
             totalPages = data.media.length > 0 ? 1 : 0;
         } else {
-            totalPages = await findTotalPages(filters, page === 1 ? data : await anilistService.getAnimeList(1, PER_PAGE, filters));
+            try {
+                const firstPage = page === 1 ? data : await anilistService.getAnimeList(1, PER_PAGE, filters);
+                totalPages = await findTotalPages(filters, firstPage);
+            } catch (err) {
+                // Computing the exact total costs several extra AniList calls
+                // (binary search) on top of the one that already got `data`
+                // successfully — if AniList is rate-limiting hard enough that
+                // those extra calls fail too, don't take the whole request
+                // down with it. The page the user asked for still has real
+                // results; just fall back to a conservative page-count guess.
+                console.error('findTotalPages failed, falling back to an estimate:', err.message);
+                totalPages = data.pageInfo.hasNextPage ? page + 1 : page;
+            }
         }
 
         res.json({

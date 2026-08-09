@@ -7,6 +7,13 @@ const GENRE_NAME_TO_ID = Object.fromEntries(
     Object.entries(TMDB_GENRE_MAP).map(([id, name]) => [name, Number(id)])
 );
 
+// getDiscoverMovies already filters unreleased titles out server-side via
+// primary_release_date.lte — TMDB's search endpoint has no such param, so
+// search results get the same filter applied here instead.
+function isReleased(releaseDate) {
+    return !releaseDate || releaseDate <= new Date().toISOString().slice(0, 10);
+}
+
 router.get('/', async (req, res, next) => {
     try {
         const page = Number(req.query.page) || 1;
@@ -20,11 +27,12 @@ router.get('/', async (req, res, next) => {
         // TMDB reports total_pages far beyond what it will actually serve —
         // page requests above 500 error out regardless of the reported total.
         const totalPages = Math.min(data.total_pages, 500);
+        const results = search ? data.results.filter((m) => isReleased(m.release_date)) : data.results;
         res.json({
             page: data.page,
             hasNextPage: data.page < totalPages,
             totalPages,
-            results: data.results.map(normalizeMovie),
+            results: results.map(normalizeMovie),
         });
     } catch (err) {
         next(err);
